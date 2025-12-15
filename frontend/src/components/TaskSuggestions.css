@@ -1,0 +1,25 @@
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+}
+
+.suggestions-list li {
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.suggestions-list li:hover {
+  transform: translateX(5px);
+}
+
+#taskSuggestions p {
+  color: #666;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}

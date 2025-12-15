@@ -1,0 +1,38 @@
+.control-panel {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.analytics-result {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 5px;
+  margin-top: 15px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  max-height: 400px;
+  overflow-y: auto;
+  color: #2d3748;
+}
+
+.analytics-result pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .control-panel {
+    flex-direction: column;
+  }
+  
+  .control-panel button {
+    width: 100%;
+  }
+  
+  .analytics-result {
+    max-height: 300px;
+  }
+}

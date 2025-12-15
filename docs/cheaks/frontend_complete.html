@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="cheaks/s1.css">
+    <title>SynTwin - Complete Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧠 SynTwin - Live Detection & Analytics Dashboard</h1>
+
+        <!-- Server Status -->
+        <div class="card full-width">
+            <h2>🔌 Server Status</h2>
+            <div id="serverStatus">
+                <span class="status offline">Checking...</span>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Live Detection -->
+            <div class="card full-width">
+                <h2>📹 Live Face & Posture Detection</h2>
+                <div class="control-panel">
+                    <button id="startDetection" class="success" onclick="startDetection()">
+                        ▶️ Start Detection
+                    </button>
+                    <button id="stopDetection" class="danger" onclick="stopDetection()" disabled>
+                        ⏹️ Stop Detection
+                    </button>
+                    <div id="detectionStatus" style="flex: 1; text-align: right; padding: 10px;">
+                        <span class="status offline">Not Running</span>
+                    </div>
+                </div>
+
+                <img id="videoFeed" src="" alt="Video feed will appear here" style="display: none;">
+
+                <div class="detection-info" id="detectionInfo">
+                    <div class="info-box">
+                        <h3 id="emotionDisplay">--</h3>
+                        <p>Emotion</p>
+                    </div>
+                    <div class="info-box">
+                        <h3 id="postureDisplay">--</h3>
+                        <p>Posture</p>
+                    </div>
+                    <div class="info-box">
+                        <h3 id="eyesDisplay">--</h3>
+                        <p>Eyes</p>
+                    </div>
+                    <div class="info-box">
+                        <h3 id="sentimentDisplay">--</h3>
+                        <p>Sentiment</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Suggestions -->
+            <div class="card">
+                <h2>📋 AI Task Suggestions</h2>
+                <button onclick="getTaskSuggestions()">🔄 Refresh Suggestions</button>
+                <div id="suggestions" class="result">
+                    <em>Start detection to get personalized suggestions</em>
+                </div>
+            </div>
+
+            <!-- Current State -->
+            <div class="card">
+                <h2>🎯 Current State Analysis</h2>
+                <button onclick="getCurrentState()">🔄 Refresh State</button>
+                <div id="currentState" class="result">
+                    <em>Start detection first</em>
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="card full-width">
+                <h2>📊 Analytics Dashboard</h2>
+                <div class="control-panel">
+                    <button onclick="getAnalytics()">📈 Summary</button>
+                    <button onclick="getRecentDetections()">📜 Recent Data</button>
+                    <button onclick="getStats()">📊 Statistics</button>
+                    <button onclick="loadCharts()">📉 Load Charts</button>
+                    <button onclick="clearAllData()" class="danger" style="margin-left: auto;"
+                        title="Permanently delete all detection history">
+                        🗑️ Clear All History
+                    </button>
+                </div>
+                <div id="analytics" class="result">
+                    <em>Click a button to load analytics</em>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="card full-width">
+                <h2>📈 Visual Analytics</h2>
+                <div class="charts-grid">
+                    <div class="card">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">Emotion Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="emotionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">Posture Analysis</h3>
+                        <div class="chart-container">
+                            <canvas id="postureChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">Sentiment Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="sentimentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="color: #667eea; margin-bottom: 10px;">Detection Timeline</h3>
+                        <div class="chart-container">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</body>
+
+</html>

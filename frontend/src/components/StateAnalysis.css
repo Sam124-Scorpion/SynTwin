@@ -1,0 +1,32 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.stat-box {
+  background: #f0f4ff;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-box strong {
+  display: block;
+  font-size: 1.2em;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.stat-box small {
+  font-size: 0.85em;
+  color: #718096;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,30 @@
+# FastAPI + Server
+fastapi==0.116.1
+uvicorn[standard]==0.34.0
+websockets>=12.0
+
+# Computer Vision
+opencv-python==4.10.0.84
+mediapipe==0.10.14
+
+# Machine Learning / NLP
+scikit-learn==1.7.1
+numpy<2.0
+pandas==2.2.3
+transformers==4.55.2
+torch
+tokenizers==0.21.0
+
+# Database
+sqlalchemy
+databases
+psycopg2-binary   # if using PostgreSQL
+sqlite-utils      # if sticking with SQLite
+
+# Visualization / Analytics
+matplotlib~=3.10.5
+plotly
+
+# Frontend communication & Tools
+streamlit~=1.51.0
+tabulate~=0.9.0
