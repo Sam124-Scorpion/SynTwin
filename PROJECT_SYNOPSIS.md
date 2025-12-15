@@ -1235,7 +1235,7 @@ chore: Maintenance tasks
 
 ---
 
-**Made with ❤️ By TEAM FUTURE5**
+**Made with ❤️ by TEAM FUTURE5**
 
 ⭐ **Star this repository if you find it useful!**
 
