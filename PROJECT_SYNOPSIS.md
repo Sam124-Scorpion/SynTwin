@@ -1236,6 +1236,7 @@ chore: Maintenance tasks
 ---
 
 **Made with ❤️ using FastAPI, Transformers, and OpenCV**
+                **By TEAM FUTURE5**
 
 ⭐ **Star this repository if you find it useful!**
 
