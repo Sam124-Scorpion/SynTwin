@@ -1046,6 +1046,6 @@ You're now ready to use SynTwin effectively!
 
 **Happy monitoring! 🎭🧠📊**
 
-Made with ❤️ using FastAPI, Transformers, and OpenCV
+Made with ❤️ by TEAM FUTURE5
 
 </div>

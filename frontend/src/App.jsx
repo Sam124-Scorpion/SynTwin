@@ -33,8 +33,16 @@ function App() {
     onMessage: (data) => {
       if (data.type === 'detection') {
         setDetectionData(data.data);
+      } else if (data.type === 'status') {
+        // Sync UI state with backend status messages
+        if (data.running === false) {
+          setShouldReconnect(false);
+          setIsDetecting(false);
+        }
       } else if (data.type === 'error') {
         console.error('Detection error:', data.message);
+        setShouldReconnect(false);
+        setIsDetecting(false);
       } else if (data.type === 'keepalive') {
         console.log('Received keepalive from server');
       }

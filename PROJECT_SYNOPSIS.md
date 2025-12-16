@@ -78,6 +78,28 @@ The project combines **computer vision**, **sentiment analysis**, and **behavior
 └─────────────────────────────────────────────────────────┘
 ```
 
+---
+
+
+## 📐 System Diagrams
+
+For comprehensive system visualizations including architecture, data flow, use cases, sequence diagrams, component interactions, state machines, and deployment diagrams, please refer to:
+
+**[📊 SYSTEM_DIAGRAMS.md](SYSTEM_DIAGRAMS.md)**
+
+This dedicated diagrams document contains:
+- **System Architecture Diagram**: Multi-layered system structure visualization
+- **Data Flow Diagram**: End-to-end data processing flow
+- **Use Case Diagram**: User, system, and admin interaction scenarios
+- **Sequence Diagrams**: Real-time detection and task recommendation flows
+- **Component Interaction Diagram**: Frontend-backend relationships
+- **State Machine Diagram**: User state transitions and recommendations
+- **Deployment Diagram**: Development, production, and Docker environments
+
+
+---
+
+
 ### Technology Stack
 
 #### Backend Technologies
@@ -1235,7 +1257,7 @@ chore: Maintenance tasks
 
 ---
 
-**Made with ❤️ using FastAPI, Transformers, and OpenCV**
+**Made with ❤️ using TEAM FUTURE5**
 
 ⭐ **Star this repository if you find it useful!**
 
@@ -1244,3 +1266,4 @@ chore: Maintenance tasks
 🚀 **Check [QUICK_START.md](docs/QUICK_START.md) for setup**
 
 </div>
+

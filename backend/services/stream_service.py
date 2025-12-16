@@ -195,6 +195,38 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time detection streaming."""
     await websocket.accept()
     active_connections.append(websocket)
+    auto_started = False
+
+    # Try to start the camera immediately when a client connects so that
+    # the detection loop is ready without relying solely on a later
+    # start command from the client.
+    try:
+        if not detection_manager.is_running:
+            if detection_manager.start_camera():
+                detection_manager.is_running = True
+                auto_started = True
+                await websocket.send_json({
+                    "type": "status",
+                    "message": "Camera auto-started",
+                    "running": True
+                })
+            else:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "Failed to initialize camera"
+                })
+                await websocket.close(code=1011, reason="Camera init failed")
+                return
+        else:
+            await websocket.send_json({
+                "type": "status",
+                "message": "Camera already running",
+                "running": True
+            })
+    except Exception as init_err:
+        print(f"Error during auto start: {init_err}")
+        await websocket.close(code=1011, reason="Auto start failure")
+        return
     
     async def send_detection_data():
         """Continuously send detection data while running."""
@@ -263,6 +295,12 @@ async def websocket_endpoint(websocket: WebSocket):
                                 "type": "error",
                                 "message": "Failed to start camera"
                             })
+                    else:
+                        await websocket.send_json({
+                            "type": "status",
+                            "message": "Detection already running",
+                            "running": True
+                        })
                 
                 elif command.get("action") == "stop":
                     print("Stop command received from client")
