@@ -1044,8 +1044,8 @@ You're now ready to use SynTwin effectively!
 
 <div align="center">
 
-**Happy monitoring! 🎭🧠📊**
+**Happy monitoring!**
 
-Made with ❤️ using FastAPI, Transformers, and OpenCV
+Made with ❤️ by TEAM FUTURE5
 
 </div>
