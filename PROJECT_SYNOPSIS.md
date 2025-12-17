@@ -1257,11 +1257,8 @@ chore: Maintenance tasks
 
 ---
 
-<<<<<<< HEAD
-**Made with ❤️ using TEAM FUTURE5**
-=======
 **Made with ❤️ by TEAM FUTURE5**
->>>>>>> ee9000b9dbb551917a2d0e21be6ef0c7ded22d94
+
 
 ⭐ **Star this repository if you find it useful!**
 
