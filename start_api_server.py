@@ -8,7 +8,7 @@ from pathlib import Path
 
 def main():
     print("="*60)
-    print("🚀 Starting SynTwin Backend API Server")
+    print("Starting SynTwin Backend API Server")
     print("="*60)
     print()
     
@@ -16,12 +16,12 @@ def main():
     try:
         import uvicorn
         import fastapi
-        print("✅ FastAPI and Uvicorn are installed")
+        print("FastAPI and Uvicorn are installed")
     except ImportError:
-        print("❌ Missing dependencies!")
+        print("Missing dependencies!")
         print("Installing FastAPI and Uvicorn...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "fastapi", "uvicorn", "pydantic"])
-        print("✅ Dependencies installed")
+        print(" Dependencies installed")
     
     print()
     print("📡 Starting server...")

@@ -195,81 +195,57 @@ async def websocket_endpoint(websocket: WebSocket):
     """WebSocket endpoint for real-time detection streaming."""
     await websocket.accept()
     active_connections.append(websocket)
-    auto_started = False
 
-    # Try to start the camera immediately when a client connects so that
-    # the detection loop is ready without relying solely on a later
-    # start command from the client.
-    try:
-        if not detection_manager.is_running:
-            if detection_manager.start_camera():
-                detection_manager.is_running = True
-                auto_started = True
-                await websocket.send_json({
-                    "type": "status",
-                    "message": "Camera auto-started",
-                    "running": True
-                })
-            else:
-                await websocket.send_json({
-                    "type": "error",
-                    "message": "Failed to initialize camera"
-                })
-                await websocket.close(code=1011, reason="Camera init failed")
-                return
-        else:
-            await websocket.send_json({
-                "type": "status",
-                "message": "Camera already running",
-                "running": True
-            })
-    except Exception as init_err:
-        print(f"Error during auto start: {init_err}")
-        await websocket.close(code=1011, reason="Auto start failure")
-        return
+    # Send current detection status without auto-starting
+    await websocket.send_json({
+        "type": "status",
+        "message": "Connected to detection server",
+        "running": detection_manager.is_running
+    })
     
     async def send_detection_data():
         """Continuously send detection data while running."""
-        print(f"Detection loop started for this connection. is_running={detection_manager.is_running}")
+        print(f"Detection streaming task started. Current status: is_running={detection_manager.is_running}")
         frame_count = 0
         
-        # Wait for detection to be started
-        while not detection_manager.is_running:
-            await asyncio.sleep(0.1)
-        
-        print("Detection is active, streaming frames to this connection")
-        
-        # Stream frames while detection is running AND connection is open
-        while detection_manager.is_running:
-            try:
-                result = detection_manager.process_frame()
-                if result:
-                    try:
-                        await websocket.send_json({
-                            "type": "detection",
-                            "data": result
-                        })
-                        frame_count += 1
-                        if frame_count % 100 == 0:
-                            print(f"Sent {frame_count} frames to this connection")
-                    except Exception as send_err:
-                        # Connection issue - stop streaming to THIS connection
-                        print(f"Failed to send frame (connection closed): {send_err}")
-                        break  # Exit loop but don't stop global detection
-                else:
-                    # No result from camera
-                    await asyncio.sleep(0.05)
+        try:
+            # Stream frames only while detection is explicitly running
+            while True:
+                # Check if we should stop this connection's streaming
+                if not detection_manager.is_running:
+                    # Wait briefly and check again (allows restart without reconnecting)
+                    await asyncio.sleep(0.1)
+                    continue
+                
+                # Detection is running, process and send frames
+                try:
+                    result = detection_manager.process_frame()
+                    if result:
+                        try:
+                            await websocket.send_json({
+                                "type": "detection",
+                                "data": result
+                            })
+                            frame_count += 1
+                            if frame_count % 100 == 0:
+                                print(f"Sent {frame_count} frames")
+                        except Exception as send_err:
+                            # Connection issue - exit this loop
+                            print(f"Failed to send frame (connection closed): {send_err}")
+                            break
+                    else:
+                        # No result from camera
+                        await asyncio.sleep(0.05)
+                        continue
+                        
+                    await asyncio.sleep(0.033)  # ~30 FPS
+                except Exception as e:
+                    print(f"Frame processing error: {e}")
+                    await asyncio.sleep(0.1)
                     continue
                     
-                await asyncio.sleep(0.033)  # ~30 FPS
-            except Exception as e:
-                print(f"Detection loop error: {e}")
-                await asyncio.sleep(0.1)
-                # Don't break - keep trying to send frames
-                continue
-        
-        print(f"Streaming ended for this connection. Total frames: {frame_count}")
-        # DON'T stop detection here - other connections might be active
+        finally:
+            print(f"Streaming ended for this connection. Total frames: {frame_count}")
     
     async def handle_commands():
         """Handle start/stop commands from client."""
@@ -303,15 +279,16 @@ async def websocket_endpoint(websocket: WebSocket):
                         })
                 
                 elif command.get("action") == "stop":
-                    print("Stop command received from client")
+                    print("Stop command received - stopping detection")
                     detection_manager.is_running = False
                     detection_manager.stop_camera()
                     await websocket.send_json({
                         "type": "status",
-                        "message": "Detection stopped by user",
+                        "message": "Detection stopped",
                         "running": False
                     })
-                    should_stop = True  # Exit loop on stop command
+                    # Don't exit command loop - allow restart without reconnecting
+                    print("Detection stopped, ready for new commands")
                     
             except WebSocketDisconnect:
                 print("Client disconnected from command handler")
@@ -345,14 +322,13 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f"WebSocket main error: {e}")
     finally:
-        # Clean up connection but DON'T stop detection
-        # This allows reconnection without restarting detection
+        # Clean up connection
         if websocket in active_connections:
             active_connections.remove(websocket)
-        # Only stop if explicitly commanded, not on connection close
-        # detection_manager.is_running = False  # Commented out to allow reconnection
-        # detection_manager.stop_camera()  # Don't stop camera on disconnect
-        print(f"WebSocket connection closed. Detection still running: {detection_manager.is_running}")
+        
+        # If this was the last connection and detection is still running,
+        # keep it running (don't auto-stop on disconnect)
+        print(f"WebSocket disconnected. Active connections: {len(active_connections)}, Detection running: {detection_manager.is_running}")
 
 
 @router.post("/start")

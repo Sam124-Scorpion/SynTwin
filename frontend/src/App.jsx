@@ -63,13 +63,24 @@ function App() {
     }
   });
 
-  // Connect/disconnect based on isDetecting
+  // Connect WebSocket on mount, send start/stop commands
+  useEffect(() => {
+    // Connect WebSocket once on mount
+    connect();
+    
+    // Cleanup on unmount
+    return () => {
+      disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Send start/stop commands when detection state changes
   useEffect(() => {
     if (isDetecting) {
-      connect();
+      sendMessage({ action: 'start' });
     } else {
       sendMessage({ action: 'stop' });
-      disconnect();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDetecting]);

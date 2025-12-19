@@ -382,6 +382,7 @@ class CombinedDetector:
 
         # ========== ENHANCED POSTURE DETECTION ==========
         posture_status = "Straight"
+        results = None  # Initialize results variable
         
         if MEDIAPIPE_AVAILABLE and self.pose is not None:
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -507,7 +508,7 @@ class CombinedDetector:
             "eyes": eye_status,
             "posture": posture_status,
             "faces_detected": len(faces),
-            "pose_landmarks": results.pose_landmarks
+            "pose_landmarks": results.pose_landmarks if results else None
         }
 
         if self.enable_logging:
