@@ -125,63 +125,98 @@ graph TB
     class AE,AF,AG,AH external
 ```
 
-## Data Flow Diagram
+## Data Flow Diagrams (Leveled)
 
+### Level 0 – Context
 ```mermaid
 flowchart TD
-    Start([User Sits at Desk]) --> Webcam[Webcam Captures Frame<br/>30 FPS]
-    
+    User([User]) -->|Webcam + UI| System[SynTwin System]
+    System -->|Real-time feedback| User
+    System -->|Tasks & insights| User
+
+    subgraph External Inputs
+        Webcam[Webcam Video]
+    end
+
+    Webcam --> System
+```
+
+### Level 1 – Major Subsystems
+```mermaid
+flowchart TD
+    User([User]) --> UI[Frontend UI]
+    UI -->|WebSocket/HTTP| API[FastAPI Gateway]
+    API --> DetectSvc[Detection Service]
+    API --> NLPSvc[NLP Service]
+    API --> AnalyticsSvc[Analytics Service]
+    API --> StreamSvc[Stream Service]
+
+    DetectSvc --> Detectors[Combined Detector]
+    Detectors --> DataStores[(DB/CSV Logs)]
+    Detectors --> WS[WebSocket Broadcast]
+    Detectors --> StateClass[State Classifier]
+
+    NLPSvc --> Recommender[Task Recommender]
+    Recommender --> UI
+
+    AnalyticsSvc --> Charts[Chart Data]
+    Charts --> UI
+
+    WS --> UI
+    DataStores --> AnalyticsSvc
+```
+
+### Level 2 – Detailed Flow (Final)
+```mermaid
+flowchart TD
+    Start([User at Desk]) --> Webcam[Webcam Captures Frame]
     Webcam --> CombinedDet{Combined Detector}
-    
-    CombinedDet --> FaceDetect[Face Detection<br/>Haar Cascade]
-    CombinedDet --> EmotionAnalysis[Emotion Analysis<br/>Feature Extraction]
+
+    CombinedDet --> FaceDetect[Face Detection<br/>Haar]
+    CombinedDet --> EmotionAnalysis[Emotion Analysis<br/>Features]
     CombinedDet --> PostureEst[Posture Estimation<br/>MediaPipe]
-    CombinedDet --> EyeTrack[Eye Tracking<br/>EAR Calculation]
-    CombinedDet --> SmileDetect[Smile Detection<br/>Mouth Analysis]
-    
+    CombinedDet --> EyeTrack[Eye Tracking<br/>EAR]
+    CombinedDet --> SmileDetect[Smile Detection<br/>Mouth]
+
     FaceDetect --> Merge{Merge Results}
     EmotionAnalysis --> Merge
     PostureEst --> Merge
     EyeTrack --> Merge
     SmileDetect --> Merge
-    
-    Merge --> DetectionResult[DetectionResult Object<br/>emotion, posture, eyes, smile, timestamp]
-    
+
+    Merge --> DetectionResult[DetectionResult<br/>emotion, posture, eyes, smile, ts]
     DetectionResult --> Parallel{Parallel Processing}
-    
-    Parallel --> DBLogger[(Database Logger<br/>Async Insert)]
-    Parallel --> CSVLogger[(CSV Logger<br/>Append to File)]
-    Parallel --> WSStream[WebSocket Stream<br/>Broadcast to Clients]
-    Parallel --> StateClass[State Classifier<br/>Analyze for Recommendations]
-    
+
+    Parallel --> DBLogger[(DB Logger)]
+    Parallel --> CSVLogger[(CSV Logger)]
+    Parallel --> WSStream[WebSocket Stream]
+    Parallel --> StateClass[State Classifier]
+
     DBLogger --> Storage1[(SQLite/PostgreSQL)]
     CSVLogger --> Storage2[(logs/syntwin_log.csv)]
-    
-    WSStream --> Frontend1[Frontend Receives Update<br/>via WebSocket]
-    Frontend1 --> UIUpdate1[UI Updates in Real-Time<br/>Detection Info Display]
-    
-    StateClass --> SentimentAnalyzer[Sentiment Analyzer<br/>DistilBERT Processing]
-    SentimentAnalyzer --> NLPEngine[NLP Engine<br/>Generate State Summary]
-    
-    NLPEngine --> TaskRec[Task Recommender<br/>Random Forest Classifier]
-    TaskRec --> TaskDB[(Task Database<br/>6 Categories, 100+ Tasks)]
-    
-    TaskDB --> RankTasks[Rank & Score Tasks<br/>Based on User State]
-    RankTasks --> TopTasks[Select Top 5 Tasks<br/>with Priorities]
-    
-    TopTasks --> Frontend2[Frontend Displays<br/>Task Suggestions]
-    
-    Storage1 --> Analytics[Analytics Service<br/>Query & Aggregate Data]
-    Analytics --> Charts[Generate Charts<br/>Matplotlib/Chart.js]
-    Charts --> Frontend3[Frontend Shows<br/>Analytics Dashboard]
-    
+
+    WSStream --> Frontend1[Frontend Receives Update]
+    Frontend1 --> UIUpdate1[UI Updates in Real-Time]
+
+    StateClass --> SentimentAnalyzer[Sentiment Analyzer<br/>DistilBERT]
+    SentimentAnalyzer --> NLPEngine[NLP Engine<br/>State Summary]
+    NLPEngine --> TaskRec[Task Recommender<br/>Random Forest]
+    TaskRec --> TaskDB[(Task Database)]
+    TaskDB --> RankTasks[Rank & Score Tasks]
+    RankTasks --> TopTasks[Top 5 Tasks]
+    TopTasks --> Frontend2[Task Suggestions UI]
+
+    Storage1 --> Analytics[Analytics Service]
+    Analytics --> Charts[Charts Data]
+    Charts --> Frontend3[Analytics Dashboard]
+
     %% Styling
     classDef input fill:#e1f5ff,stroke:#01579b,stroke-width:2px
     classDef process fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
     classDef storage fill:#fce4ec,stroke:#880e4f,stroke-width:2px
     classDef output fill:#fff9c4,stroke:#f57f17,stroke-width:2px
     classDef decision fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    
+
     class Start,Webcam input
     class CombinedDet,Merge,Parallel decision
     class FaceDetect,EmotionAnalysis,PostureEst,EyeTrack,SmileDetect,DetectionResult,StateClass,SentimentAnalyzer,NLPEngine,TaskRec,RankTasks,TopTasks,Analytics,Charts process
