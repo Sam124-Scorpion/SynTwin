@@ -1,7 +1,7 @@
 import { useRef, useCallback } from 'react';
 import { WS_BASE } from '../config';
 
-const useWebSocket = ({ onMessage, onClose }) => {
+const useWebSocket = ({ onMessage, onClose, shouldAutoStart = false }) => {
   const wsRef = useRef(null);
 
   const connect = useCallback(() => {
@@ -13,7 +13,9 @@ const useWebSocket = ({ onMessage, onClose }) => {
 
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
-      wsRef.current.send(JSON.stringify({ action: 'start' }));
+      if (shouldAutoStart) {
+        wsRef.current.send(JSON.stringify({ action: 'start' }));
+      }
     };
 
     wsRef.current.onmessage = (event) => {
@@ -31,7 +33,7 @@ const useWebSocket = ({ onMessage, onClose }) => {
         onClose(event);
       }
     };
-  }, [onMessage, onClose]);
+  }, [onMessage, onClose, shouldAutoStart]);
 
   const disconnect = useCallback(() => {
     if (wsRef.current) {

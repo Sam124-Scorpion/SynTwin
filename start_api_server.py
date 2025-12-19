@@ -24,11 +24,11 @@ def main():
         print(" Dependencies installed")
     
     print()
-    print("📡 Starting server...")
+    print("Starting server...")
     print("   - Host: 0.0.0.0")
     print("   - Port: 8000")
     print()
-    print("🌐 Access the API at:")
+    print("Access the API at:")
     print("   - Root: http://localhost:8000")
     print("   - Docs: http://localhost:8000/docs")
     print("   - ReDoc: http://localhost:8000/redoc")
@@ -48,9 +48,9 @@ def main():
             log_level="info"
         )
     except KeyboardInterrupt:
-        print("\n\n🛑 Server stopped by user")
+        print("\n\n Server stopped by user")
     except Exception as e:
-        print(f"\n❌ Error starting server: {e}")
+        print(f"\n Error starting server: {e}")
         print("\nTry running manually:")
         print("  uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000")
 

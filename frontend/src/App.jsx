@@ -60,7 +60,8 @@ function App() {
           });
         }, 1000);
       }
-    }
+    },
+    shouldAutoStart: isDetecting
   });
 
   // Connect WebSocket on mount, send start/stop commands
