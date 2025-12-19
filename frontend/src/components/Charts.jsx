@@ -318,7 +318,7 @@ const Charts = ({ isDetecting }) => {
     <>
       <div className="card full-width">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h2 style={{ margin: 0 }}>Analytics Dashboard</h2>
+          <h2 style={{ margin: 0 }}>Visual Analytics Dashboard</h2>
           <button onClick={loadCharts} disabled={loading} className="success">
             {loading ? 'Refreshing...' : 'Refresh Charts'}
           </button>
