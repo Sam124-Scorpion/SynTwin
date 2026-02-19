@@ -1,19 +1,19 @@
-# backend/classifiers/mood_state.py
+# backend/classifiers/mood_classifier.py
 
 """
-Classifies emotional mood based on detected facial emotion label.
+Classifies emotional mood based on detected facial emotion label from CNN.
+Supports 2 primary emotions (Happy, Angry) + Neutral and Drowsy states.
 """
 
 class MoodStateClassifier:
     def __init__(self):
-        # Basic mapping (can be extended later)
+        # Simplified mapping for 2-class emotion system
         self.mood_map = {
             "Happy": "Positive",
             "Neutral": "Calm",
-            "Sad": "Low",
             "Angry": "Tense",
-            "Surprised": "Alert",
-            "Fear": "Anxious",
+            "Drowsy": "Tired",
+            "Focused": "Concentrated"
         }
 
     def classify(self, data):

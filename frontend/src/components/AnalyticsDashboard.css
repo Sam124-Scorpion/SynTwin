@@ -1,38 +1,213 @@
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.ad-card {
+  background: #1e1e2e !important;
+  color: #f0f0f0;
+  border: 1px solid #4c4c4c;
+}
+
+.ad-card h2 {
+  color: #a5b4fc !important;
+  border-bottom-color: #4c4c4c !important;
+}
+
+/* ── Control panel ──────────────────────────────────────────────────────── */
 .control-panel {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
-.analytics-result {
-  background: #f5f5f5;
-  padding: 15px;
-  border-radius: 5px;
-  margin-top: 15px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  max-height: 400px;
-  overflow-y: auto;
-  color: #2d3748;
+.tab-active {
+  background: #6366f1 !important;
+  box-shadow: 0 0 0 2px #a5b4fc55;
 }
 
-.analytics-result pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+/* ── Content area ───────────────────────────────────────────────────────── */
+.analytics-content {
+  min-height: 120px;
 }
 
+.ad-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 30px 0;
+  color: #94a3b8;
+}
+
+.ad-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #4c4c6a;
+  border-top-color: #6366f1;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.ad-message {
+  padding: 20px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ── Metric cards ───────────────────────────────────────────────────────── */
+.metrics-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.metric-card {
+  flex: 1;
+  min-width: 130px;
+  background: #16213e;
+  border: 1px solid #2d2d4a;
+  border-top: 3px solid #6366f1;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.metric-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.metric-label {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-sub {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* ── Distribution bars ──────────────────────────────────────────────────── */
+.dist-section {
+  margin-bottom: 20px;
+}
+
+.dist-section h4 {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.dist-label {
+  width: 160px;
+  font-size: 0.88rem;
+  color: #e2e8f0;
+  flex-shrink: 0;
+}
+
+.dist-track {
+  flex: 1;
+  height: 10px;
+  background: #2d2d4a;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.dist-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #a5b4fc);
+  border-radius: 99px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+.dist-count {
+  width: 36px;
+  text-align: right;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* ── Recent data table ──────────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid #2d2d4a;
+}
+
+.det-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+
+.det-table thead {
+  background: #16213e;
+}
+
+.det-table th {
+  padding: 10px 14px;
+  text-align: left;
+  color: #a5b4fc;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #2d2d4a;
+}
+
+.det-table td {
+  padding: 9px 14px;
+  color: #e2e8f0;
+  border-bottom: 1px solid #1e1e3a;
+}
+
+.det-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.det-table tbody tr:hover td {
+  background: #1a1a30;
+}
+
+.td-num {
+  color: #475569;
+  font-size: 0.8rem;
+}
+
+.td-time {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.badge-emotion {
+  display: inline-block;
+  background: #2d2d4a;
+  border-radius: 99px;
+  padding: 2px 10px;
+  font-size: 0.83rem;
+  color: #c4b5fd;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .control-panel {
-    flex-direction: column;
-  }
-  
-  .control-panel button {
-    width: 100%;
-  }
-  
-  .analytics-result {
-    max-height: 300px;
-  }
+  .control-panel { flex-direction: column; }
+  .control-panel button { width: 100%; }
+  .metrics-row { flex-direction: column; }
+  .dist-label { width: 120px; }
 }

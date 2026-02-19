@@ -10,57 +10,16 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from collections import Counter
 
-# Import advanced NLP module
-try:
-    from .advanced_nlp import get_advanced_nlp
-    ADVANCED_NLP_AVAILABLE = True
-except ImportError:
-    ADVANCED_NLP_AVAILABLE = False
-    print("WARNING: Advanced NLP not available, using basic recommendations")
-
-# Import real-life task engine
-try:
-    from .real_life_tasks import get_real_life_task_engine
-    REAL_LIFE_TASKS_AVAILABLE = True
-except ImportError:
-    REAL_LIFE_TASKS_AVAILABLE = False
-    print("WARNING: Real-life task engine not available")
-
 
 class TaskRecommender:
     """
     Analyzes user behavior and recommends personalized daily tasks.
-    Now integrated with advanced NLP, ML models, and REAL-LIFE task suggestions!
     """
 
-    def __init__(self, db_path=None, use_advanced_nlp=True, use_real_life_tasks=True):
+    def __init__(self, db_path=None):
         if db_path is None:
             db_path = Path(__file__).parent.parent / "database" / "syntwin.db"
         self.db_path = db_path
-        
-        # Initialize advanced NLP if available
-        self.advanced_nlp = None
-        self.use_advanced = use_advanced_nlp and ADVANCED_NLP_AVAILABLE
-        
-        if self.use_advanced:
-            try:
-                self.advanced_nlp = get_advanced_nlp(db_path)
-                print("[SUCCESS] Advanced NLP engine initialized")
-            except Exception as e:
-                print(f"[WARNING] Could not initialize advanced NLP: {e}")
-                self.use_advanced = False
-        
-        # Initialize real-life task engine
-        self.real_life_engine = None
-        self.use_real_life = use_real_life_tasks and REAL_LIFE_TASKS_AVAILABLE
-        
-        if self.use_real_life:
-            try:
-                self.real_life_engine = get_real_life_task_engine()
-                print("[SUCCESS] Real-life task engine initialized")
-            except Exception as e:
-                print(f"[WARNING] Could not initialize real-life tasks: {e}")
-                self.use_advanced = False
 
     def get_recent_data(self, minutes=30):
         """
@@ -132,13 +91,14 @@ class TaskRecommender:
             "avg_sentiment": round(avg_sentiment, 2),
             "needs_break": needs_break,
             "data_points": len(data),
-            "closed_eyes_ratio": round(closed_eyes_count / len(eyes), 2) if eyes else 0
+            "closed_eyes_ratio": round(closed_eyes_count / len(eyes), 2) if eyes else 0,
+            "recent_emotions": emotions[:10],   # last 10 for Gemini context
+            "drowsy_score": round(drowsy_count / len(emotions), 2) if emotions else 0.0,
         }
 
     def get_task_suggestions(self, minutes=10):
         """
-        Generate personalized REAL-LIFE task suggestions based on current state.
-        Enhanced with Advanced NLP, ML predictions, and actual daily tasks!
+        Generate personalized task suggestions based on current state.
         """
         state = self.analyze_current_state(minutes)
         
@@ -152,60 +112,7 @@ class TaskRecommender:
                 "method": "no_data"
             }
         
-        # PRIORITY: Use real-life task engine first (if available)
-        if self.use_real_life and self.real_life_engine:
-            try:
-                result = self.real_life_engine.get_real_life_suggestions(state, max_suggestions=7)
-                
-                # Determine priority
-                categories = result['categories']
-                if 'mental_wellness' in categories or 'posture_fix' in categories:
-                    priority = 'high'
-                elif 'challenging_work' in categories or 'collaborative_work' in categories:
-                    priority = 'medium'
-                else:
-                    priority = 'low'
-                
-                return {
-                    "suggestions": result['suggestions'],
-                    "priority": priority,
-                    "current_state": state,
-                    "recommendation_context": result['context_message'],
-                    "task_categories": categories,
-                    "time_context": result['time_context'],
-                    "method": "real_life_tasks"
-                }
-            except Exception as e:
-                print(f"[WARNING] Real-life task engine failed: {e}, falling back...")
-        
-        # Fallback 1: Use advanced NLP if available
-        if self.use_advanced and self.advanced_nlp:
-            try:
-                # Get user behavioral patterns
-                user_patterns = self.advanced_nlp.get_user_patterns(days=7)
-                
-                # Get smart ML-based recommendations
-                suggestions = self.advanced_nlp.get_smart_recommendations(state, user_patterns)
-                
-                # Determine priority using ML prediction
-                category = self.advanced_nlp.predict_task_category(state)
-                priority = self._category_to_priority(category, state)
-                
-                context = self._generate_smart_context(state, category, user_patterns)
-                
-                return {
-                    "suggestions": suggestions[:5],  # Top 5
-                    "priority": priority,
-                    "current_state": state,
-                    "recommendation_context": context,
-                    "ml_category": category,
-                    "method": "advanced_nlp"
-                }
-            except Exception as e:
-                print(f"[WARNING] Advanced NLP failed, falling back to basic: {e}")
-                # Fall through to basic recommendations
-        
-        # Basic rule-based recommendations (fallback)
+        # Rule-based recommendations
         suggestions = []
         priority = "medium"
         
@@ -236,7 +143,7 @@ class TaskRecommender:
                 priority = "medium"
         
         # Emotion-based suggestions
-        if emotion == "Sad" or sentiment < -0.3:
+        if sentiment < -0.5:
             suggestions.extend([
                 "🎵 Listen to uplifting music",
                 "👥 Reach out to a friend or colleague",
@@ -248,11 +155,13 @@ class TaskRecommender:
         
         elif emotion == "Angry" or emotion == "Frustrated":
             suggestions.extend([
-                "🧘 Practice deep breathing (4-7-8 technique)",
-                "🚶 Take a short walk to cool down",
-                "✍️ Journal your thoughts",
-                "🎧 Listen to calming music",
-                "💬 Talk to someone about what's bothering you"
+                "🧘 4-7-8 breathing: inhale 4s, hold 7s, exhale 8s — repeat 3 times",
+                "🚶 Step away from screen immediately for 3–5 minutes",
+                "💧 Drink a full glass of cold water slowly and mindfully",
+                "✍️ Write what triggered this feeling, then close the note",
+                "🤲 Progressive relaxation: tense all muscles 5s, then fully release",
+                "🎧 Put on calming or neutral background music",
+                "☎️ Call or message someone you trust if you feel overwhelmed",
             ])
             priority = "high"
         
@@ -310,8 +219,8 @@ class TaskRecommender:
             context_parts.append("You seem tired")
         elif emotion == "Happy":
             context_parts.append("You're in a great mood")
-        elif emotion == "Sad":
-            context_parts.append("You seem down")
+        elif emotion == "Angry":
+            context_parts.append("You seem tense")
         elif emotion == "Focused":
             context_parts.append("You're focused")
         
@@ -424,57 +333,25 @@ def get_suggestions(minutes=10):
 
 
 if __name__ == "__main__":
-    # Test the recommender
-    recommender = TaskRecommender(use_advanced_nlp=True)
+    recommender = TaskRecommender()
     
-    print("🧠 SynTwin Task Recommender - Enhanced with Advanced NLP\n")
-    print("="*60)
+    print("SynTwin Task Recommender\n" + "="*60)
     
-    print("\n📊 Analyzing your current state...\n")
     state = recommender.analyze_current_state(minutes=30)
-    print("Current State:")
+    print("\nCurrent State:")
     for key, value in state.items():
         print(f"  {key}: {value}")
     
-    print("\n" + "="*60)
-    print("📋 Task Suggestions (AI-Powered):\n")
-    
     result = recommender.get_task_suggestions(minutes=30)
-    print(f"Priority: {result['priority'].upper()}")
-    print(f"Method: {result.get('method', 'basic').upper()}")
-    if 'ml_category' in result:
-        print(f"ML Category: {result['ml_category']}")
+    print(f"\nPriority: {result['priority'].upper()}")
     print(f"Context: {result['recommendation_context']}\n")
-    
-    print("Suggested Tasks:")
     for i, suggestion in enumerate(result['suggestions'], 1):
         print(f"  {i}. {suggestion}")
     
-    print("\n" + "="*60)
-    print("📊 Daily Summary:\n")
-    
     daily = recommender.get_daily_summary(hours=24)
+    print("\nDaily Summary:")
     for key, value in daily.items():
         print(f"  {key}: {value}")
-    
-    # Test advanced NLP features if available
-    if recommender.use_advanced and recommender.advanced_nlp:
-        print("\n" + "="*60)
-        print("🤖 Advanced NLP Features:\n")
-        
-        patterns = recommender.advanced_nlp.get_user_patterns(days=7)
-        if patterns.get('patterns_found'):
-            print("User Behavioral Patterns:")
-            print(f"  Peak Productivity Hours: {patterns['peak_productivity_hours']}")
-            print(f"  Total Data Points: {patterns['total_data_points']}")
-            print(f"  Most Common Emotions: {list(patterns['most_common_emotions'].keys())[:3]}")
-        
-        # Test sentiment analysis
-        test_text = "I'm feeling great today and very productive!"
-        sentiment = recommender.advanced_nlp.analyze_sentiment_advanced(test_text)
-        print(f"\n  Text Sentiment Analysis: '{test_text}'")
-        print(f"    Sentiment: {sentiment['sentiment']}")
-        print(f"    Score: {sentiment['score']:.2f}")
         print(f"    Confidence: {sentiment['confidence']:.2f}")
         print(f"    Method: {sentiment['method']}")
 

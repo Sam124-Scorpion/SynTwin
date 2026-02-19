@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect , useCallback } from 'react';
 import { API_BASE } from '../config';
 import './StateAnalysis.css';
 
@@ -7,7 +7,8 @@ const StateAnalysis = ({ isDetecting }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchState = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const fetchState = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -27,7 +28,7 @@ const StateAnalysis = ({ isDetecting }) => {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   useEffect(() => {
     // Load state on mount

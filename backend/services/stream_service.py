@@ -90,11 +90,27 @@ class DetectionManager:
             print(f"Error in process_frame (camera read): {e}")
             return None
         
-        # Detect
+        # Detect using fresh CNN logic
         try:
-            results, annotated_frame = self.detector.detect(frame)
+            detection_result = self.detector.process_frame(frame, apply_smoothing=True)
+            
+            # Map fresh CNN results to expected format
+            emotion = detection_result.get('primary_emotion', 'Neutral')
+            confidence = detection_result.get('confidence', 0.0)
+            intensity = detection_result.get('intensity', None)
+            
+            # Build results dict in expected format
+            results = {
+                "emotion": emotion,
+                "confidence": confidence,
+                "intensity": intensity,
+                "smile": "Yes" if emotion == "Happy" else "No",
+                "eyes": "Open",  # Default, can be enhanced later
+                "posture": "Good"  # Default, can be enhanced later
+            }
+            
         except Exception as e:
-            print(f"Error in detector.detect(): {e}")
+            print(f"Error in detector.process_frame(): {e}")
             return None
         
         # Normalize emotion
@@ -102,13 +118,9 @@ class DetectionManager:
             normalized_emotion = results["emotion"].strip().lower()
             if normalized_emotion in ["tired", "sleepy", "drowsy"]:
                 results["emotion"] = "Drowsy"
-            elif normalized_emotion in ["sad", "down", "unhappy"]:
-                results["emotion"] = "Sad"
             elif normalized_emotion == "neutral":
                 if results.get("eyes") == "Closed":
                     results["emotion"] = "Drowsy"
-                elif results.get("posture") in ["Slouching", "Lean Forward"]:
-                    results["emotion"] = "Sad"
         except Exception as e:
             print(f"Error normalizing emotion: {e}")
         
@@ -149,12 +161,12 @@ class DetectionManager:
         log_detection_to_db(entry)
         self.csv_logger.log_entry(entry)
         
-        # Draw detections on frame
+        # Draw detections on frame using fresh CNN drawer
         try:
-            processed_frame = self.detector.draw_detections(annotated_frame.copy(), results)
+            processed_frame = self.detector.draw_results(frame.copy(), detection_result)
         except Exception as e:
             print(f"Error drawing detections: {e}")
-            processed_frame = annotated_frame
+            processed_frame = frame
         
         # Convert frame to base64 for sending
         try:
@@ -167,6 +179,8 @@ class DetectionManager:
         # Prepare JSON-serializable results (remove any non-serializable objects)
         clean_results = {
             "emotion": str(results.get("emotion", "Unknown")),
+            "confidence": f"{results.get('confidence', 0):.0%}",
+            "intensity": str(results.get("intensity", "")) if results.get("intensity") else "",
             "smile": str(results.get("smile", "Unknown")),
             "eyes": str(results.get("eyes", "Unknown")),
             "posture": str(results.get("posture", "Unknown"))

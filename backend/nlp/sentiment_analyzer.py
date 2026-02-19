@@ -17,13 +17,11 @@ class SentimentAnalyzer:
         "Excited": 0.9,
         "Focused": 0.6,
         "Neutral": 0.0,
-        "Sad": -0.7,
         "Angry": -0.8,
         "Frustrated": -0.6,
         "Drowsy": -0.3,
         "Tired": -0.4,
         "Anxious": -0.5,
-        "Surprised": 0.3,
         "Confused": -0.2
     }
 
@@ -153,7 +151,7 @@ if __name__ == "__main__":
     # Test emotion sentiment
     print("Emotion Sentiment Analysis:")
     print(f"Happy: {analyzer.analyze_emotion_sentiment('Happy')}")
-    print(f"Sad: {analyzer.analyze_emotion_sentiment('Sad')}")
+    print(f"Angry: {analyzer.analyze_emotion_sentiment('Angry')}")
     
     # Test text sentiment
     print("\nText Sentiment Analysis:")

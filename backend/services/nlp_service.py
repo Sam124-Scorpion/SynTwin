@@ -1,12 +1,14 @@
 # backend/services/nlp_service.py
 """
-NLP Service - API endpoints for task recommendations and sentiment analysis
+NLP Service - API endpoints for task recommendations, sentiment analysis,
+and Gemini AI mental wellness advice.
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, List
 from backend.nlp.task_recommender import TaskRecommender
 from backend.nlp.sentiment_analyzer import SentimentAnalyzer
+from backend.nlp.gemini_advisor import get_gemini_advisor
 
 router = APIRouter(prefix="/api/nlp", tags=["NLP"])
 
@@ -26,6 +28,23 @@ class SentimentRequest(BaseModel):
 
 class TaskSuggestionRequest(BaseModel):
     minutes: Optional[int] = 10
+
+
+class GeminiAdviceRequest(BaseModel):
+    """Payload for AI mental wellness advice."""
+    # Core detection fields
+    emotion:         Optional[str]   = "Neutral"
+    confidence:      Optional[float] = 0.0
+    smile:           Optional[str]   = "Not Smiling"
+    eyes:            Optional[str]   = "Eyes Open"
+    posture:         Optional[str]   = "Straight"
+    drowsy_score:    Optional[float] = 0.0
+    blink_rate:      Optional[float] = 0.0
+    # Optional enrichment
+    recent_emotions: Optional[List[str]] = []
+    session_minutes: Optional[int]       = None
+    # Gemini API key (overrides env var GEMINI_API_KEY if supplied)
+    api_key:         Optional[str]       = None
 
 
 # Endpoints
@@ -129,7 +148,7 @@ def get_emotion_sentiment(emotion: str):
     Get sentiment score for a specific emotion.
     
     Path params:
-    - emotion: Emotion name (e.g., 'Happy', 'Sad', 'Angry')
+    - emotion: Emotion name (e.g., 'Happy', 'Angry', 'Neutral', 'Drowsy')
     """
     try:
         score = sentiment_analyzer.analyze_emotion_sentiment(emotion)
@@ -152,3 +171,111 @@ def health_check():
         "service": "NLP",
         "status": "running"
     }
+
+
+# ── Gemini AI Wellness Advisor ───────────────────────────────────────────────
+@router.post("/gemini/advice")
+def get_gemini_advice(request: GeminiAdviceRequest):
+    """
+    Send current detection data to Google Gemini and receive
+    personalised mental-wellness tasks + motivation.
+
+    Body (all optional):
+    - emotion, confidence, smile, eyes, posture
+    - drowsy_score, blink_rate
+    - recent_emotions: list of recent emotion strings
+    - session_minutes: how long user has been at desk
+    - api_key: Gemini API key (overrides GEMINI_API_KEY env var)
+    """
+    try:
+        advisor = get_gemini_advisor(api_key=request.api_key or None)
+        detection_data = {
+            "emotion":         request.emotion,
+            "confidence":      request.confidence,
+            "smile":           request.smile,
+            "eyes":            request.eyes,
+            "posture":         request.posture,
+            "drowsy_score":    request.drowsy_score,
+            "blink_rate":      request.blink_rate,
+            "recent_emotions": request.recent_emotions,
+            "session_minutes": request.session_minutes,
+        }
+        result = advisor.get_advice(detection_data)
+        return {
+            "success": result["success"],
+            "data": {
+                "advice":  result["advice"],
+                "emotion": result["emotion"],
+                "gemini_available": result["success"],
+                "error":   result.get("error"),
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/gemini/status")
+def gemini_status():
+    """Check whether Gemini API is configured and reachable."""
+    advisor = get_gemini_advisor()
+    return {
+        "success":   True,
+        "available": advisor.ready,
+        "message":   "Gemini ready" if advisor.ready
+                     else "Gemini unavailable – check GEMINI_API_KEY"
+    }
+
+
+@router.get("/gemini/auto-advice")
+def get_auto_gemini_advice(minutes: int = 10):
+    """
+    Automatically read the latest detection state from the DB and
+    get Gemini AI wellness advice — no request body needed.
+    The frontend can call this with a single GET request.
+    """
+    try:
+        # Pull current state from the database
+        state = recommender.analyze_current_state(minutes=minutes)
+
+        # Guard: do not call Gemini if there is no real detection data yet
+        if state.get("data_points", 0) == 0:
+            return {
+                "success": False,
+                "no_data": True,
+                "data": {
+                    "advice":           None,
+                    "emotion":          None,
+                    "gemini_available": False,
+                    "state_summary":    state,
+                    "error":            "No detection data yet — start detection first.",
+                }
+            }
+
+        # Build a detection_data dict from the DB state
+        detection_data = {
+            "emotion":         state.get("dominant_emotion", "Neutral"),
+            "confidence":      state.get("confidence", 0.0),
+            "smile":           state.get("smile", "Not Smiling"),
+            "eyes":            state.get("eyes", "Eyes Open"),
+            "posture":         state.get("posture_status", "Straight"),
+            "drowsy_score":    state.get("drowsy_score", 0.0),
+            "blink_rate":      state.get("blink_rate", 0.0),
+            "recent_emotions": state.get("recent_emotions", []),
+            "session_minutes": state.get("session_minutes", None),
+        }
+
+        advisor = get_gemini_advisor()
+        result  = advisor.get_advice(detection_data)
+
+        return {
+            "success": True,
+            "data": {
+                "advice":           result["advice"],
+                "emotion":          result["emotion"],
+                "gemini_available": result["success"],
+                "state_summary":    state,
+                "error":            result.get("error"),
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

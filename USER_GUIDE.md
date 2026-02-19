@@ -30,7 +30,7 @@ SynTwin is an intelligent digital twin system that monitors your emotional state
 
 ### Key Capabilities
 
-- 🎭 **Real-time Emotion Detection**: 7 emotions (Happy, Sad, Angry, Neutral, Surprised, Fearful, Disgusted)
+- 🎭 **Real-time Emotion Detection**: 2 primary emotions (Happy, Angry) plus Neutral and Drowsy states
 - 🧘 **Posture Monitoring**: Tracks if you're sitting properly, slouching, or leaning
 - 👁️ **Eye Tracking**: Detects fatigue through eye open/closed patterns
 - 😊 **Smile Detection**: Measures engagement and positivity
@@ -291,15 +291,12 @@ Open `frontend_complete.html` in your browser.
 
 **Available Emotions:**
 - 😊 **Happy**: Smiling, positive expression
-- 😢 **Sad**: Downturned mouth, low energy
-- 😠 **Angry**: Furrowed brows, tense jaw
+- � **Angry**: Furrowed brows, tense jaw
 - 😐 **Neutral**: Relaxed, no strong emotion
-- 😲 **Surprised**: Wide eyes, open mouth
-- 😨 **Fearful**: Tension, concern
-- 🤢 **Disgusted**: Wrinkled nose, negative reaction
+- 😴 **Drowsy**: Eyes closed, tired state
 
 **How It's Detected:**
-- Uses OpenCV Haar Cascades for face detection
+- Uses CNN (Convolutional Neural Network) for emotion recognition
 - Analyzes facial features in real-time
 - Updates every frame (~30 FPS)
 

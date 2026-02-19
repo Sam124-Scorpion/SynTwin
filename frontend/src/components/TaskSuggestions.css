@@ -1,3 +1,14 @@
+.card.full-width {
+  background: #1e1e2e !important;
+  color: #f0f0f0;
+  border: 1px solid #4c4c4c;
+}
+
+.card.full-width h2 {
+  color: #a5b4fc !important;
+  border-bottom-color: #4c4c4c !important;
+}
+
 .suggestions-list {
   list-style: none;
   padding: 0;
@@ -18,8 +29,30 @@
 }
 
 #taskSuggestions p {
-  color: #666;
+  color: #cbd5e1;
   font-style: italic;
   text-align: center;
   padding: 20px;
+}
+
+.gemini-advice {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid #6366f1;
+  border-radius: 10px;
+  padding: 16px 20px;
+  color: #e2e8f0;
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.gemini-advice p {
+  color: #e2e8f0;
+  font-style: normal;
+  text-align: left;
+  padding: 0;
+  margin: 4px 0 !important;
+}
+
+.gemini-advice strong {
+  color: #a5b4fc;
 }
