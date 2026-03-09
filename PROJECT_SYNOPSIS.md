@@ -10,7 +10,7 @@
 |-----------|---------|
 | **Project Name** | SynTwin - Neuroadaptive Life Simulation & Task Recommendation System |
 | **Type** | AI-Powered Digital Twin with Real-Time Emotion Detection |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 | **Primary Language** | Python 3.12 |
 | **Framework** | FastAPI 0.116.1 |
 | **AI Models** | CNN Emotion Detection, Google Gemini 2.5 Flash, DistilBERT, Random Forest, OpenCV DNN |
@@ -20,7 +20,77 @@
 
 ---
 
-## � Recent Updates (February 2026)
+## 🆕 Recent Updates (March 2026)
+
+### Desktop Detection Mode & Modular src Package
+
+**Major Enhancement**: Introduced a fully self-contained desktop detection runner alongside a new `backend/src/` package that enables standalone OpenCV-window-based emotion analysis independently of the FastAPI web server.
+
+#### 📦 New `backend/src/` Package
+
+| Module | Purpose |
+|--------|---------|
+| `backend/src/config.py` | `Config` class — window, camera, model, emotion-color, and performance settings |
+| `backend/src/core/analyzer.py` | `EmotionAnalyzer` — threaded emotion analysis with DeepFace + custom FER model |
+| `backend/src/core/camera.py` | `VideoStream` — threaded video capture at up to 60 FPS |
+| `backend/src/core/face_detector.py` | `SimpleFaceDetector` — OpenCV Haar Cascade fallback |
+| `backend/src/ui/visualizer.py` | `Visualizer` — face bounding boxes and HUD overlay rendering |
+| `backend/src/utils/fps_counter.py` | `FPSCounter` — rolling FPS calculation (window_size=30) |
+| `backend/src/utils/logger.py` | Structured logging utility |
+
+#### 🖥️ Desktop Detection Runner (`backend/main.py` — `run_desktop_detection()`)
+
+A new `run_desktop_detection()` function added to `main.py` turns the backend into a dual-mode application:
+- **API Server mode** (default): FastAPI REST + WebSocket server
+- **Desktop mode**: Standalone OpenCV window with real-time emotion HUD
+
+**Desktop mode features:**
+- MediaPipe face detection (with automatic Haar Cascade fallback)
+- Threaded `VideoStream` capture (1920×1080 @ 60 FPS capable)
+- Threaded `EmotionAnalyzer` (non-blocking, analysis-lock prevents duplicate threads)
+- FPS overlay and live emotion probability bars via `Visualizer`
+- Video recording toggle (`r` key) and graceful quit (`q` key)
+- `argparse` CLI for mode selection
+
+**Supported emotion classes (desktop):**
+`angry`, `disgust`, `fear`, `happy`, `sad`, `surprise`, `neutral`
+
+#### 📜 New Utility Scripts (`backend/scripts/`)
+
+| Script | Purpose |
+|--------|---------|
+| `check_environment.py` | Validates Python version (3.8+), checks all required packages, warns on Python 3.13+ compatibility issues |
+| `download_dataset.py` | Downloads FER2013 emotion dataset from Kaggle; auto-creates `data/fer2013/` directory |
+| `test_system.py` | Integration test suite — verifies imports (OpenCV, MediaPipe, Config, VideoStream, EmotionAnalyzer) before system startup |
+
+#### 🎨 Frontend: Lighting Quality & Confidence Display (`DetectionInfo.jsx`)
+
+New detection metadata now surfaced in the UI:
+
+- **Lighting Quality** indicator with distinct CSS classes:
+  - `lighting-excellent` / `lighting-good` / `lighting-fair` / `lighting-poor`
+- **Lighting condition icons**: 🌙 (dark) / ☀ (bright) / ✔ (normal)
+- **Confidence** value display (when available from backend stream)
+
+#### 🗃️ SQLite Database Committed
+
+`backend/database/syntwin.db` (~1.9 MB) now included in repository — pre-seeded database for immediate use without migration step.
+
+#### 🔧 Refactored Detectors
+
+Major simplification of existing detector modules:
+
+| Module | Change |
+|--------|--------|
+| `detectors/emotion_cnn.py` | Reduced from ~495 lines to streamlined core logic |
+| `detectors/combined_detector.py` | Reduced from ~392 lines — cleaner integration point |
+| `detectors/cnn_face_detector.py` | Reduced from ~239 lines — focused on DNN + fallback |
+
+Minor updates to `data_logger.py`, `mood_classifier.py`, `gemini_advisor.py`, `sentiment_analyzer.py`, `task_recommender.py`, `nlp_service.py`, and `stream_service.py` for compatibility with the refactored detectors.
+
+---
+
+## 📝 Recent Updates (February 2026)
 
 ### Fresh Happy Emotion Detection with CNN Logic
 
@@ -222,6 +292,26 @@ The project combines **computer vision**, **sentiment analysis**, and **behavior
 │  • MediaPipe (Pose)     • Scikit-learn (ML)            │
 │  • SQLite/PostgreSQL    • Chart.js (Visualization)     │
 └─────────────────────────────────────────────────────────┘
+```
+
+**Desktop Mode (Standalone):**
+```
+┌──────────────────────────────────────────┐
+│         Desktop Detection Runner         │
+│  backend/main.py → run_desktop_detection │
+│                                          │
+│  VideoStream (threaded, 60 FPS)          │
+│       ↓                                  │
+│  MediaPipe / SimpleFaceDetector          │
+│       ↓                                  │
+│  EmotionAnalyzer (threaded)              │
+│   ├─ Custom FER Model (Keras/tf_keras)   │
+│   └─ DeepFace fallback                   │
+│       ↓                                  │
+│  Visualizer (HUD overlay, face box)      │
+│       ↓                                  │
+│  OpenCV window output                    │
+└──────────────────────────────────────────┘
 ```
 
 ---
@@ -800,7 +890,82 @@ async def log_detection(detection_data):
 - Error handling
 - Auto-reconnect support
 
-### 7. Simulator (Future Feature)
+### 7. Desktop Detection Module (`backend/src/`)
+
+#### Config (`src/config.py`)
+
+Centralised configuration class for the standalone desktop runner:
+
+```python
+class Config:
+    WINDOW_NAME = "Advanced Emotion Analytics"
+    CAMERA_ID = 0
+    CAMERA_WIDTH = 1920
+    CAMERA_HEIGHT = 1080
+    FPS = 60
+    ANALYSIS_THROTTLE = 3   # analyse every N frames
+    SMOOTHING_WINDOW  = 10
+    EMOTIONS = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
+```
+
+#### EmotionAnalyzer (`src/core/analyzer.py`)
+
+Thread-safe emotion analysis engine for the desktop pipeline:
+
+- **Dual backend**: custom FER model (Keras/tf_keras, 48×48 input) + DeepFace fallback
+- **Non-blocking**: analysis runs in a daemon thread; uses `analysis_lock` to prevent concurrent model calls
+- `start()` / `stop()` lifecycle control
+- `analyze(face_img)` submits work; `get_results()` returns `(emotion, probs)` safely
+
+#### VideoStream (`src/core/camera.py`)
+
+Thread-safe video capture wrapper:
+- `cv2.CAP_DSHOW` on Windows for low-latency capture
+- Background `update()` thread continuously reads frames
+- Configurable width, height, and FPS (up to 60 FPS)
+
+#### SimpleFaceDetector (`src/core/face_detector.py`)
+
+Lightweight OpenCV Haar Cascade detector used when MediaPipe is unavailable.
+
+#### Visualizer (`src/ui/visualizer.py`)
+
+Draws real-time overlays onto captured frames:
+- `draw_face_box(frame, coords, emotion)` — coloured bounding box
+- `draw_hud(frame, emotion, probs, fps)` — emotion label, probability bars, FPS counter
+
+#### FPSCounter (`src/utils/fps_counter.py`)
+
+Rolling FPS computation using a configurable `window_size` (default 30 frames).
+
+---
+
+### 8. Utility Scripts (`backend/scripts/`)
+
+#### Environment Checker (`scripts/check_environment.py`)
+
+Validates the runtime before startup:
+- Python version check (3.8+ required; warns on 3.13+)
+- Package availability check for all dependencies
+- Actionable install hints for missing packages
+
+#### Dataset Downloader (`scripts/download_dataset.py`)
+
+Downloads the **FER2013** emotion dataset from Kaggle:
+- Auto-creates `data/fer2013/` directory
+- Requires `kaggle` CLI and authenticated `kaggle.json`
+- Extracts and verifies dataset integrity
+
+#### System Test Suite (`scripts/test_system.py`)
+
+Pre-flight integration checks:
+- Import tests: OpenCV, MediaPipe, Config, VideoStream, EmotionAnalyzer
+- Smoke tests for core detection pipeline
+- Reports pass/fail with clear messages before any inference runs
+
+---
+
+### 9. Simulator (Future Feature)
 
 #### Twin State (`simulator/twin_state.py`)
 
@@ -984,7 +1149,7 @@ frontend/src/
 │   ├── ServerStatus.jsx        # Backend connection indicator
 │   ├── DetectionControl.jsx    # Start/stop buttons
 │   ├── VideoFeed.jsx           # Webcam display
-│   ├── DetectionInfo.jsx       # Current state display
+│   ├── DetectionInfo.jsx       # Current state display (+ lighting quality & confidence)
 │   ├── TaskSuggestions.jsx     # AI recommendations
 │   ├── StateAnalysis.jsx       # State breakdown
 │   ├── AnalyticsDashboard.jsx  # Stats and history
@@ -1015,7 +1180,7 @@ App.jsx (State Container)
     │       └── Displays webcam stream
     │
     ├─→ DetectionInfo (props: currentDetection)
-    │       └── Shows emotion, posture, eyes, sentiment
+    │       └── Shows emotion, posture, eyes, sentiment, lighting quality, confidence
     │
     ├─→ TaskSuggestions (props: serverOnline)
     │       └── Fetches and displays AI suggestions
@@ -1156,13 +1321,24 @@ tests/
 ├── test_simulator.py        # Digital twin simulation tests
 ├── combined_detector_test.py # Integration tests
 └── fusion_test.py           # Data fusion tests
+
+backend/scripts/
+├── check_environment.py     # Runtime dependency validator
+├── download_dataset.py      # Kaggle FER2013 dataset downloader
+└── test_system.py           # Pre-flight integration test suite
 ```
 
 ### Test Execution
 
 ```bash
-# Run all tests
-pytest tests/
+# Validate runtime environment before starting
+python -m backend.scripts.check_environment
+
+# Run pre-flight system checks
+python -m backend.scripts.test_system
+
+# Download FER2013 dataset
+python -m backend.scripts.download_dataset
 
 # Run specific test
 pytest tests/test_detectors.py
@@ -1206,8 +1382,11 @@ source .venv/bin/activate  # Linux/Mac
 # Install dependencies
 pip install -r requirements.txt
 
-# Run development server
+# Run development server (API mode)
 python start_api_server.py
+
+# Run standalone desktop detection window
+python -m backend.main --mode desktop
 
 # Run frontend
 cd frontend

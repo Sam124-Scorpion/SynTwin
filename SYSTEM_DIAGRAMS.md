@@ -52,11 +52,26 @@ graph TB
         AD[CSV Files]
     end
     
+    subgraph "Desktop Mode — backend/src/"
+        DM1[VideoStream<br/>Threaded capture 60 FPS]
+        DM2[EmotionAnalyzer<br/>FER model + DeepFace]
+        DM3[SimpleFaceDetector<br/>Haar Cascade]
+        DM4[Visualizer<br/>HUD overlay]
+        DM5[FPSCounter]
+        DM1 --> DM2
+        DM2 --> DM4
+        DM3 --> DM4
+        DM1 --> DM3
+        DM2 --> DM5
+    end
+
     subgraph "External Resources"
         AE[OpenCV Haar Cascades]
         AF[MediaPipe Models]
         AG[DistilBERT Model]
         AH[Webcam Input]
+        AI[Google Gemini 2.5 Flash]
+        AJ[DeepFace Models]
     end
     
     %% Frontend to API
@@ -98,12 +113,17 @@ graph TB
     AA --> AC
     AB --> AD
     
+    %% Desktop Mode (standalone path — bypasses FastAPI)
+    DM1 -->|OpenCV window| DM4
+    DM2 --> AJ
+
     %% External Resources
     O --> AE
     P --> AF
     Q --> AE
     R --> AE
     S --> AG
+    T --> AI
     O --> AH
     P --> AH
     Q --> AH
@@ -122,7 +142,8 @@ graph TB
     class I,J,K,L,M service
     class N,O,P,Q,R,S,T,U,V,W,X,Y logic
     class Z,AA,AB,AC,AD data
-    class AE,AF,AG,AH external
+    class AE,AF,AG,AH,AI,AJ external
+    class DM1,DM2,DM3,DM4,DM5 logic
 ```
 
 ## Data Flow Diagrams (Leveled)
@@ -200,10 +221,13 @@ flowchart TD
 
     StateClass --> SentimentAnalyzer[Sentiment Analyzer<br/>DistilBERT]
     SentimentAnalyzer --> NLPEngine[NLP Engine<br/>State Summary]
-    NLPEngine --> TaskRec[Task Recommender<br/>Random Forest]
+    NLPEngine --> GeminiRouter{Gemini Available?}
+    GeminiRouter -->|Yes| GeminiAI[Google Gemini 2.5 Flash<br/>AI Task Advisor]
+    GeminiRouter -->|No / Fallback| TaskRec[Task Recommender<br/>Random Forest]
+    GeminiAI --> TopTasks[Top 5 Tasks]
     TaskRec --> TaskDB[(Task Database)]
     TaskDB --> RankTasks[Rank & Score Tasks]
-    RankTasks --> TopTasks[Top 5 Tasks]
+    RankTasks --> TopTasks
     TopTasks --> Frontend2[Task Suggestions UI]
 
     Storage1 --> Analytics[Analytics Service]
@@ -222,6 +246,7 @@ flowchart TD
     class FaceDetect,EmotionAnalysis,PostureEst,EyeTrack,SmileDetect,DetectionResult,StateClass,SentimentAnalyzer,NLPEngine,TaskRec,RankTasks,TopTasks,Analytics,Charts process
     class DBLogger,CSVLogger,Storage1,Storage2,TaskDB storage
     class WSStream,Frontend1,UIUpdate1,Frontend2,Frontend3 output
+    class GeminiRouter decision
 ```
 
 ## Use Case Diagram
@@ -407,6 +432,7 @@ sequenceDiagram
     participant NLPService
     participant Database
     participant SentimentAnalyzer
+    participant GeminiAdvisor
     participant TaskRecommender
     participant RandomForest
     
@@ -424,32 +450,28 @@ sequenceDiagram
     SentimentAnalyzer->>SentimentAnalyzer: Load DistilBERT Model
     SentimentAnalyzer->>SentimentAnalyzer: Generate State Text
     Note over SentimentAnalyzer: "User is Happy with<br/>Good posture at 10:45 AM"
-    
     SentimentAnalyzer->>SentimentAnalyzer: Tokenize & Process
     SentimentAnalyzer-->>NLPService: Sentiment Score (+0.85)
     
-    NLPService->>TaskRecommender: Request Recommendations
-    Note over TaskRecommender: Input Features:<br/>- Energy: High<br/>- Mood: Positive<br/>- Focus: Good<br/>- Time: Morning
-    
-    TaskRecommender->>TaskRecommender: Filter Task Database
-    Note over TaskRecommender: 6 Categories:<br/>work, personal, learning,<br/>social, health, creative
-    
-    TaskRecommender->>RandomForest: Classify & Score Tasks
-    RandomForest->>RandomForest: Feature Extraction
-    RandomForest->>RandomForest: Tree Voting (100 trees)
-    RandomForest-->>TaskRecommender: Task Scores []
-    
-    TaskRecommender->>TaskRecommender: Rank by Score
-    TaskRecommender->>TaskRecommender: Select Top 5
-    TaskRecommender-->>NLPService: Recommended Tasks []
+    alt Gemini API Available
+        NLPService->>GeminiAdvisor: POST /api/nlp/gemini/advice
+        Note over GeminiAdvisor: Prompt includes:<br/>- Emotion + CNN confidence<br/>- Eye state & drowsiness score<br/>- Posture quality<br/>- Time of day, session duration<br/>- Recent 10-state trend
+        GeminiAdvisor->>GeminiAdvisor: Call gemini-2.5-flash API
+        GeminiAdvisor-->>NLPService: AI-generated tasks + reasoning
+    else Gemini Unavailable / Rate-limited
+        NLPService->>TaskRecommender: Request Local Recommendations
+        Note over TaskRecommender: Input Features:<br/>- Energy: High<br/>- Mood: Positive<br/>- Focus: Good<br/>- Time: Morning
+        TaskRecommender->>TaskRecommender: Filter Task Database (100+ tasks)
+        TaskRecommender->>RandomForest: Classify & Score Tasks
+        RandomForest->>RandomForest: Tree Voting (100 trees)
+        RandomForest-->>TaskRecommender: Task Scores []
+        TaskRecommender->>TaskRecommender: Rank by Score, Select Top 5
+        TaskRecommender-->>NLPService: Recommended Tasks []
+    end
     
     NLPService->>NLPService: Generate Context Message
-    Note over NLPService: "High energy detected!<br/>Focused work recommended"
-    
     NLPService-->>FastAPI: {tasks[], context, state}
     FastAPI-->>Frontend: JSON Response
-    
-    Frontend->>Frontend: Parse Response
     Frontend->>Frontend: Update Task List UI
     Frontend-->>User: Display 5 Personalized Tasks
     
@@ -626,6 +648,7 @@ graph TB
         Uvicorn[Uvicorn Server<br/>Port 8000]
         SQLite[(SQLite Database<br/>syntwin.db)]
         CSV[(CSV Logs<br/>logs/syntwin_log.csv)]
+        DesktopMode[Desktop Detection Mode<br/>OpenCV Window<br/>python -m backend.main --mode desktop]
     end
     
     subgraph "Production Environment"
@@ -664,6 +687,7 @@ graph TB
     subgraph "External Services"
         HuggingFace[Hugging Face<br/>Model Hub<br/>DistilBERT]
         MediaPipe[Google MediaPipe<br/>Pose Models]
+        GeminiAPI[Google Gemini API<br/>gemini-2.5-flash<br/>Task Recommendations]
     end
     
     %% Development connections
@@ -673,6 +697,7 @@ graph TB
     Uvicorn --> SQLite
     Uvicorn --> CSV
     Browser --> Webcam
+    DesktopMode --> Webcam
     
     %% Production connections
     Browser -->|HTTPS| Nginx
@@ -707,8 +732,10 @@ graph TB
     %% External services
     Uvicorn -.->|Download Models| HuggingFace
     Uvicorn -.->|Download Models| MediaPipe
+    Uvicorn -.->|Task Suggestions| GeminiAPI
     Worker1 -.->|Model Updates| HuggingFace
     Worker1 -.->|Model Updates| MediaPipe
+    Worker1 -.->|Task Suggestions| GeminiAPI
     
     %% Styling
     classDef client fill:#e1f5ff,stroke:#01579b,stroke-width:2px
@@ -719,11 +746,11 @@ graph TB
     classDef storage fill:#fce4ec,stroke:#880e4f,stroke-width:2px
     
     class Browser,Webcam client
-    class Vite,Uvicorn,SQLite,CSV dev
+    class Vite,Uvicorn,SQLite,CSV,DesktopMode dev
     class Nginx,Gunicorn,Worker1,Worker2,Worker3,Worker4 prod
     class PostgreSQL,Redis,FileSystem,S3 storage
     class DockerCompose,ContainerFrontend,ContainerBackend,ContainerDB docker
-    class HuggingFace,MediaPipe external
+    class HuggingFace,MediaPipe,GeminiAPI external
 ```
 
 ---
