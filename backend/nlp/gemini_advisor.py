@@ -155,7 +155,7 @@ class GeminiAdvisor:
             api_key: Gemini API key. Falls back to env var GEMINI_API_KEY.
             model:   Gemini model name (default: gemini-1.5-flash).
         """
-        self._key   = api_key or os.environ.get("GEMINI_API_KEY", "AIzaSyAoEqgS7P7Ab7Lb3WN0aSNZWfyMfQDf9OQ")
+        self._key   = api_key or os.environ.get("GEMINI_API_KEY", "AIzaSyC5m7yn4XvnW93iLK4ZNBn5hAYkvc5uvxc")
         self._model = model
         self._client = None
 
@@ -254,14 +254,6 @@ class GeminiAdvisor:
                 "💤 Take a 10-20 min power nap or rest your eyes",
                 "☕ Have some water or a light caffeine drink",
                 "🚶 Stand up and walk for 5 minutes",
-            ]
-        elif emotion == "Angry":
-            tasks += [
-                "🧘 Do 4-7-8 breathing: inhale 4s, hold 7s, exhale 8s — repeat 3×",
-                "🚶 Step away from the screen immediately for 3–5 minutes",
-                "💧 Drink a full glass of cold water slowly and mindfully",
-                "✍️ Write down exactly what triggered this feeling, then close the note",
-                "🤲 Tense every muscle for 5 seconds, then fully release (progressive relaxation)",
             ]
         elif emotion == "Happy":
             tasks += [

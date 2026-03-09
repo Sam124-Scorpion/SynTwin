@@ -176,7 +176,6 @@ const Charts = ({ isDetecting }) => {
             'happy': 1.0,
             'focused': 0.7,
             'neutral': 0.0,
-            'angry': -0.8,
             'drowsy': -0.3
           };
           return scoreMap[emotion] || 0;

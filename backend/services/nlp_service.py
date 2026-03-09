@@ -148,7 +148,7 @@ def get_emotion_sentiment(emotion: str):
     Get sentiment score for a specific emotion.
     
     Path params:
-    - emotion: Emotion name (e.g., 'Happy', 'Angry', 'Neutral', 'Drowsy')
+    - emotion: Emotion name (e.g., 'Happy', 'Neutral', 'Drowsy')
     """
     try:
         score = sentiment_analyzer.analyze_emotion_sentiment(emotion)

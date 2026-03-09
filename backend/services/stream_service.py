@@ -106,7 +106,9 @@ class DetectionManager:
                 "intensity": intensity,
                 "smile": "Yes" if emotion == "Happy" else "No",
                 "eyes": "Open",  # Default, can be enhanced later
-                "posture": "Good"  # Default, can be enhanced later
+                "posture": "Good",  # Default, can be enhanced later
+                "lighting_condition": detection_result.get('lighting_condition', 'normal'),
+                "lighting_quality": detection_result.get('lighting_quality', 'unknown')
             }
             
         except Exception as e:
@@ -161,9 +163,12 @@ class DetectionManager:
         log_detection_to_db(entry)
         self.csv_logger.log_entry(entry)
         
-        # Draw detections on frame using fresh CNN drawer
+        # Draw detections on frame with enhanced emotion box
         try:
-            processed_frame = self.detector.draw_results(frame.copy(), detection_result)
+            processed_frame, _ = self.detector.detect_and_annotate(
+                frame.copy(), 
+                apply_smoothing=True
+            )
         except Exception as e:
             print(f"Error drawing detections: {e}")
             processed_frame = frame
@@ -183,7 +188,9 @@ class DetectionManager:
             "intensity": str(results.get("intensity", "")) if results.get("intensity") else "",
             "smile": str(results.get("smile", "Unknown")),
             "eyes": str(results.get("eyes", "Unknown")),
-            "posture": str(results.get("posture", "Unknown"))
+            "posture": str(results.get("posture", "Unknown")),
+            "lighting_condition": str(results.get("lighting_condition", "normal")),
+            "lighting_quality": str(results.get("lighting_quality", "unknown"))
         }
         
         clean_sentiment = {

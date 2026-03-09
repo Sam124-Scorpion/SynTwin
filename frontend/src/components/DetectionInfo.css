@@ -25,6 +25,23 @@
   color: #333;
 }
 
+/* Lighting quality indicators */
+.lighting-excellent {
+  color: #10b981 !important;
+}
+
+.lighting-good {
+  color: #059669 !important;
+}
+
+.lighting-fair {
+  color: #f59e0b !important;
+}
+
+.lighting-poor {
+  color: #ef4444 !important;
+}
+
 @media (max-width: 768px) {
   .info-grid {
     grid-template-columns: 1fr;

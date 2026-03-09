@@ -1,63 +1,62 @@
-# Python
+# Python byte-compiled files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-*.egg-info/
-dist/
-build/
-*.egg
 
-# Virtual Environment
-.venv/
+# Virtual environments
 venv/
-ENV/
 env/
+ENV/
+.venv
 
-# IDE
-.idea/
+# IDE settings
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
 
-# Database
-*.db
-*.db-journal
-*.sqlite
-*.sqlite3
+# Dataset files
+data/
+*.csv
+*.h5
+*.hdf5
+*.zip
+*.tar.gz
 
-# Logs
-logs/*.csv
-logs/*.log
-*.log
+# Model files (except specific ones in root)
+models/
+checkpoints/
 
-# Test files
-test_*.db
-*_test.db
+# Recordings
+*.avi
+*.mp4
+*.mov
+recording_*.avi
 
-# OS
+# Kaggle credentials
+.kaggle/
+kaggle.json
+
+# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
+# Logs
+logs/
+*.log
 
-# Model weights (if large)
-*.pth
-*.pt
-*.h5
-*.pkl
-
-# Jupyter
+# Jupyter Notebooks
 .ipynb_checkpoints/
 *.ipynb
 
-# Coverage
-.coverage
-htmlcov/
-.pytest_cache/
+# TensorFlow
+*.pb
+saved_model/
+
+# Temporary files
+tmp/
+temp/
+*.tmp

@@ -17,7 +17,6 @@ class SentimentAnalyzer:
         "Excited": 0.9,
         "Focused": 0.6,
         "Neutral": 0.0,
-        "Angry": -0.8,
         "Frustrated": -0.6,
         "Drowsy": -0.3,
         "Tired": -0.4,
@@ -42,7 +41,7 @@ class SentimentAnalyzer:
         ]
         negative_words = [
             "bad", "terrible", "hate", "dislike", "awful", "horrible",
-            "sad", "angry", "frustrated", "annoyed", "tired", "stressed"
+            "sad", "frustrated", "annoyed", "tired", "stressed"
         ]
 
         text_lower = text.lower()
@@ -151,7 +150,7 @@ if __name__ == "__main__":
     # Test emotion sentiment
     print("Emotion Sentiment Analysis:")
     print(f"Happy: {analyzer.analyze_emotion_sentiment('Happy')}")
-    print(f"Angry: {analyzer.analyze_emotion_sentiment('Angry')}")
+    print(f"Neutral: {analyzer.analyze_emotion_sentiment('Neutral')}")
     
     # Test text sentiment
     print("\nText Sentiment Analysis:")

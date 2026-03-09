@@ -43,10 +43,10 @@ class DataLogger:
                 data.get("environment_feedback", "")
             ])
         # Reduced logging verbosity - only log errors
-        pass  # print(f"🧩 Logged data at {datetime.now().strftime('%H:%M:%S')}")
+        pass  # print(f"Logged data at {datetime.now().strftime('%H:%M:%S')}")
 
     def clear_logs(self):
         """Deletes existing logs."""
         if os.path.exists(self.log_file):
             os.remove(self.log_file)
-            print("🗑️ Log file cleared.")
+            print(" Log file cleared.")

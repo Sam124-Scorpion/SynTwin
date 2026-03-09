@@ -1,6 +1,6 @@
 """
 SynTwin Detectors Module
-Simplified emotion detection: Happy, Angry, Neutral
+Simplified emotion detection: Happy, Neutral
 """
 
 from .combined_detector import CombinedDetector

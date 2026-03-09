@@ -153,7 +153,7 @@ class TaskRecommender:
             ])
             priority = "high"
         
-        elif emotion == "Angry" or emotion == "Frustrated":
+        elif emotion == "Frustrated":
             suggestions.extend([
                 "🧘 4-7-8 breathing: inhale 4s, hold 7s, exhale 8s — repeat 3 times",
                 "🚶 Step away from screen immediately for 3–5 minutes",
@@ -219,8 +219,6 @@ class TaskRecommender:
             context_parts.append("You seem tired")
         elif emotion == "Happy":
             context_parts.append("You're in a great mood")
-        elif emotion == "Angry":
-            context_parts.append("You seem tense")
         elif emotion == "Focused":
             context_parts.append("You're focused")
         

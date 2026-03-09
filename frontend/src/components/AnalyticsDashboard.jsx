@@ -3,7 +3,7 @@ import { API_BASE } from '../config';
 import './AnalyticsDashboard.css';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-const EMOTION_ICONS = { Happy: '😊', Angry: '😠', Neutral: '😐', Drowsy: '😴' };
+const EMOTION_ICONS = { Happy: '😊', Neutral: '😐', Drowsy: '😴' };
 const POSTURE_ICONS = { Straight: '🧍', Slouching: '🪑', 'Leaning Sideways': '↔️', 'Leaning Back': '↩️', 'Slouching Forward': '🫱', 'Looking Down': '⬇️' };
 const SENTIMENT_COLOR = (v) => v > 0.3 ? '#10b981' : v < -0.3 ? '#ef4444' : '#f59e0b';
 

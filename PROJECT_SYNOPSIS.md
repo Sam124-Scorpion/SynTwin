@@ -190,19 +190,19 @@ The project combines **computer vision**, **sentiment analysis**, and **behavior
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                     User Interface                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
-│  │ React        │  │ Static HTML  │  │ WebSocket    │ │
-│  │ Dashboard    │  │ Dashboard    │  │ Client       │ │
-│  └──────────────┘  └──────────────┘  └──────────────┘ │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │ React        │  │ Static HTML  │  │ WebSocket    │   │
+│  │ Dashboard    │  │ Dashboard    │  │ Client       │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
 └────────────────────────┬────────────────────────────────┘
                          │ HTTP/WebSocket
 ┌────────────────────────▼────────────────────────────────┐
 │                   FastAPI Backend                       │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │             Service Layer                        │  │
-│  │  • Detection Service  • Analytics Service        │  │
-│  │  • NLP Service       • State Service            │  │
-│  │  • Stream Service                               │  │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │             Service Layer                        │   │
+│  │  • Detection Service  • Analytics Service        │    │
+│  │  • NLP Service       • State Service            │   │
+│  │  • Stream Service                               │   │
 │  └──────────────────────────────────────────────────┘  │
 │  ┌──────────────────────────────────────────────────┐  │
 │  │            Business Logic Layer                  │  │

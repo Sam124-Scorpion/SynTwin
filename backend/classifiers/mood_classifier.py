@@ -2,7 +2,7 @@
 
 """
 Classifies emotional mood based on detected facial emotion label from CNN.
-Supports 2 primary emotions (Happy, Angry) + Neutral and Drowsy states.
+Supports 2 primary emotions (Happy, Neutral) + Drowsy states.
 """
 
 class MoodStateClassifier:
@@ -11,7 +11,6 @@ class MoodStateClassifier:
         self.mood_map = {
             "Happy": "Positive",
             "Neutral": "Calm",
-            "Angry": "Tense",
             "Drowsy": "Tired",
             "Focused": "Concentrated"
         }
