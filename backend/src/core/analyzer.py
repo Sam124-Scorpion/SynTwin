@@ -36,16 +36,16 @@ class EmotionAnalyzer:
     def load_custom_model(self):
         try:
             if load_model is None:
-                print("⚠️ Keras not available. Skipping custom FER model loading.")
+                print("[EmotionAnalyzer] Keras not available. Skipping custom FER model loading.")
                 self.custom_model = None
                 return
             if os.path.exists(Config.MODEL_PATH):
                 self.custom_model = load_model(Config.MODEL_PATH, compile=False)
-                print("✅ Custom FER Model Loaded.")
+                print("[EmotionAnalyzer] Custom FER Model Loaded.")
             else:
-                print(f"⚠️ Custom model not found at {Config.MODEL_PATH}. Using DeepFace only.")
+                print(f"[EmotionAnalyzer] Custom model not found at {Config.MODEL_PATH}. Using DeepFace only.")
         except Exception as e:
-            print(f"❌ Error loading custom model: {e}")
+            print(f"[EmotionAnalyzer] Error loading custom model: {e}")
 
     def start(self):
         self.running = True

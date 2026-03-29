@@ -109,8 +109,52 @@ const StatsView = ({ d }) => {
   );
 };
 
+const JsonBlock = ({ value }) => (
+  <pre className="pipeline-json">{JSON.stringify(value ?? {}, null, 2)}</pre>
+);
+
+const PipelineView = ({ payload }) => {
+  const pipeline = payload?.model_pipeline;
+
+  if (!pipeline) {
+    return (
+      <p className="ad-message">
+        Start detection to see live data extraction and model inference flow.
+      </p>
+    );
+  }
+
+  return (
+    <div className="pipeline-wrap">
+      <div className="pipeline-step">
+        <h4>1. Source Capture</h4>
+        <p className="pipeline-note">Raw frame metadata from webcam stream</p>
+        <JsonBlock value={pipeline.source} />
+      </div>
+
+      <div className="pipeline-step">
+        <h4>2. CV Extraction</h4>
+        <p className="pipeline-note">Face/posture extraction before neural inference</p>
+        <JsonBlock value={pipeline.cv_extraction} />
+      </div>
+
+      <div className="pipeline-step">
+        <h4>3. DNN Inference</h4>
+        <p className="pipeline-note">Emotion model inputs and probability outputs</p>
+        <JsonBlock value={pipeline.dnn_inference} />
+      </div>
+
+      <div className="pipeline-step">
+        <h4>4. Fusion Output</h4>
+        <p className="pipeline-note">Final payload sent to UI and state system</p>
+        <JsonBlock value={pipeline.fusion_output} />
+      </div>
+    </div>
+  );
+};
+
 // ── main component ────────────────────────────────────────────────────────────
-const AnalyticsDashboard = () => {
+const AnalyticsDashboard = ({ liveData }) => {
   const [view, setView]       = useState(null);   // 'summary' | 'recent' | 'stats'
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
@@ -139,6 +183,12 @@ const AnalyticsDashboard = () => {
   const getAnalytics       = () => load('summary', `${API_BASE}/api/analytics/summary`,      j => j.data);
   const getRecentDetections = () => load('recent',  `${API_BASE}/api/detection/recent?limit=20`, j => j.data);
   const getStats           = () => load('stats',   `${API_BASE}/api/detection/stats`,         j => j.data);
+  const showModelPipeline  = () => {
+    setView('pipeline');
+    setData(null);
+    setLoading(false);
+    setMessage('');
+  };
 
   const clearAllData = async () => {
     if (!window.confirm('⚠️ This will permanently delete ALL detection history and analytics data. Are you sure?')) return;
@@ -181,9 +231,10 @@ const AnalyticsDashboard = () => {
 
       {/* action bar */}
       <div className="control-panel">
-        <button onClick={getAnalytics}        disabled={loading} className={view === 'summary' ? 'tab-active' : ''}>📊 Summary</button>
-        <button onClick={getRecentDetections} disabled={loading} className={view === 'recent'  ? 'tab-active' : ''}>🕑 Recent Data</button>
-        <button onClick={getStats}            disabled={loading} className={view === 'stats'   ? 'tab-active' : ''}>📈 Statistics</button>
+        <button onClick={getAnalytics}        disabled={loading} className={view === 'summary' ? 'tab-active' : ''}>Summary</button>
+        <button onClick={getRecentDetections} disabled={loading} className={view === 'recent'  ? 'tab-active' : ''}>Recent Data</button>
+        <button onClick={getStats}            disabled={loading} className={view === 'stats'   ? 'tab-active' : ''}>Statistics</button>
+        <button onClick={showModelPipeline}   disabled={loading} className={view === 'pipeline' ? 'tab-active' : ''}>Model Pipeline</button>
         <button onClick={downloadExcelReport} disabled={loading} className="success">⬇ Excel Report</button>
         <button onClick={clearAllData}        disabled={loading} className="danger" style={{ marginLeft: 'auto' }}>🗑 Clear History</button>
       </div>
@@ -202,6 +253,7 @@ const AnalyticsDashboard = () => {
         {!loading && data && view === 'summary' && <SummaryView d={data} />}
         {!loading && data && view === 'recent'  && <RecentView  rows={Array.isArray(data) ? data : []} />}
         {!loading && data && view === 'stats'   && <StatsView   d={data} />}
+        {!loading && view === 'pipeline' && <PipelineView payload={liveData} />}
       </div>
     </div>
   );

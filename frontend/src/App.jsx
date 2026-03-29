@@ -150,7 +150,7 @@ function App() {
 
           <StateAnalysis isDetecting={isDetecting} />
 
-          <AnalyticsDashboard />
+          <AnalyticsDashboard liveData={detectionData} />
 
           <Charts isDetecting={isDetecting} />
         </div>

@@ -13,6 +13,7 @@ import json
 import base64
 from datetime import datetime
 from backend.detectors.combined_detector import CombinedDetector
+from backend.classifiers.posture_detector import PostureDetector
 from backend.simulator.twin_state import TwinState
 from backend.database.db_logger import log_detection_to_db
 from backend.analytics.data_logger import DataLogger
@@ -34,6 +35,7 @@ class DetectionManager:
     
     def __init__(self):
         self.detector = CombinedDetector()
+        self.posture_detector = PostureDetector()
         self.twin = TwinState()
         self.csv_logger = DataLogger(log_dir="logs")
         self.sentiment_analyzer = SentimentAnalyzer()
@@ -51,7 +53,7 @@ class DetectionManager:
                 # Set camera properties for better performance
                 self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
                 self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-                self.cap.set(cv2.CAP_PROP_FPS, 30)
+                self.cap.set(cv2.CAP_PROP_FPS, 36)
                 self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Reduce buffer to minimize lag
                 
                 # Quick warm up
@@ -93,6 +95,7 @@ class DetectionManager:
         # Detect using fresh CNN logic
         try:
             detection_result = self.detector.process_frame(frame, apply_smoothing=True)
+            posture_result = self.posture_detector.detect(frame)
             
             # Map fresh CNN results to expected format
             emotion = detection_result.get('primary_emotion', 'Neutral')
@@ -106,7 +109,7 @@ class DetectionManager:
                 "intensity": intensity,
                 "smile": "Yes" if emotion == "Happy" else "No",
                 "eyes": "Open",  # Default, can be enhanced later
-                "posture": "Good",  # Default, can be enhanced later
+                "posture": posture_result.get("posture", "Unknown"),
                 "lighting_condition": detection_result.get('lighting_condition', 'normal'),
                 "lighting_quality": detection_result.get('lighting_quality', 'unknown')
             }
@@ -198,11 +201,50 @@ class DetectionManager:
             "label": str(sentiment_result.get("label", "Neutral")),
             "factors": [str(f) for f in sentiment_result.get("factors", [])]
         }
+
+        primary_face = None
+        faces = detection_result.get("faces", []) if isinstance(detection_result, dict) else []
+        if faces:
+            primary_face = faces[0]
+
+        model_pipeline = {
+            "source": {
+                "camera_resolution": {
+                    "width": int(frame.shape[1]) if frame is not None else None,
+                    "height": int(frame.shape[0]) if frame is not None else None,
+                },
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            "cv_extraction": {
+                "face_count": int(detection_result.get("faces_detected", 0)),
+                "primary_face_bbox": primary_face.get("bbox") if isinstance(primary_face, dict) else None,
+                "lighting_condition": str(results.get("lighting_condition", "unknown")),
+                "lighting_quality": str(results.get("lighting_quality", "unknown")),
+                "posture": {
+                    "label": str(posture_result.get("posture", "Unknown")),
+                    "confidence": float(posture_result.get("confidence", 0.0)),
+                    "details": posture_result.get("details", {}),
+                },
+            },
+            "dnn_inference": {
+                "emotion_model": "DeepFace + optional FER custom model",
+                "primary_emotion": str(emotion),
+                "confidence": float(confidence),
+                "intensity": str(intensity) if intensity else "",
+                "probabilities": primary_face.get("probabilities", {}) if isinstance(primary_face, dict) else {},
+                "features": primary_face.get("features", {}) if isinstance(primary_face, dict) else {},
+            },
+            "fusion_output": {
+                "results": clean_results,
+                "sentiment": clean_sentiment,
+            },
+        }
         
         return {
             "frame": frame_base64,
             "results": clean_results,
             "sentiment": clean_sentiment,
+            "model_pipeline": model_pipeline,
             "twin_state": self.twin.get_snapshot()
         }
 
