@@ -1367,6 +1367,19 @@ def test_emotion_detection():
 
 ## 🚀 Deployment
 
+### Backend Deployment (Clear Steps)
+
+To deploy the backend locally or on a server, follow these steps:
+
+1. Create and activate a Python virtual environment.
+2. Install dependencies with `pip install -r requirements.txt`.
+3. Set the required AI environment variable: `OPENROUTER_API_KEY`.
+4. Start the backend with `python start_api_server.py`.
+5. Open `http://localhost:8000/docs` to confirm the API is running.
+6. Use `http://localhost:8000/api/nlp/ai/status` to verify the AI model chain.
+
+If you are deploying to production, run the app with a process manager such as Gunicorn or Uvicorn behind Nginx.
+
 ### Development Setup
 
 ```bash

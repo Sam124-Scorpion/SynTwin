@@ -14,10 +14,10 @@ const renderLine = (line, idx) => {
   );
 };
 
-const TaskSuggestions = ({ isDetecting }) => {
+const TaskSuggestions = () => {
   const [suggestions, setSuggestions]   = useState([]);   // rule-based list
-  const [adviceText, setAdviceText]     = useState('');   // Gemini raw text
-  const [source, setSource]             = useState(null); // 'gemini' | 'rules'
+  const [adviceText, setAdviceText]     = useState('');   // AI raw text
+  const [source, setSource]             = useState(null); // 'ai' | 'ai-fallback' | 'rules'
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState(null);
 
@@ -25,14 +25,14 @@ const TaskSuggestions = ({ isDetecting }) => {
     setLoading(true);
     setError(null);
 
-    // ── 1. Try Gemini AI first ──────────────────────────────────────────
+    // ── 1. Try the AI model chain first ────────────────────────────────
     try {
-      const geminiRes  = await fetch(`${API_BASE}/api/nlp/gemini/auto-advice?minutes=10`);
-      const geminiData = await geminiRes.json();
-      console.log('Gemini advice response:', geminiData);
+      const aiRes  = await fetch(`${API_BASE}/api/nlp/ai/auto-advice?minutes=10`);
+      const aiData = await aiRes.json();
+      console.log('AI advice response:', aiData);
 
       // No detection data yet — stop here, don't call fallback either
-      if (geminiData.no_data) {
+      if (aiData.no_data) {
         setSuggestions([]);
         setAdviceText('');
         setSource(null);
@@ -41,26 +41,26 @@ const TaskSuggestions = ({ isDetecting }) => {
       }
 
       if (
-        geminiData.success &&
-        geminiData.data?.gemini_available &&
-        geminiData.data?.advice
+        aiData.success &&
+        aiData.data?.ai_model_available &&
+        aiData.data?.advice
       ) {
-        setAdviceText(geminiData.data.advice);
+        setAdviceText(aiData.data.advice);
         setSuggestions([]);
-        setSource('gemini');
+        setSource('ai');
         setLoading(false);
         return;
       }
-      // Gemini returned but flagged as unavailable — still use its offline fallback text
-      if (geminiData.success && geminiData.data?.advice) {
-        setAdviceText(geminiData.data.advice);
+      // AI returned but flagged as unavailable — still use its fallback text
+      if (aiData.success && aiData.data?.advice) {
+        setAdviceText(aiData.data.advice);
         setSuggestions([]);
-        setSource('gemini-fallback');
+        setSource('ai-fallback');
         setLoading(false);
         return;
       }
-    } catch (geminiErr) {
-      console.warn('Gemini unavailable, falling back to rule-based:', geminiErr);
+    } catch (aiErr) {
+      console.warn('AI model chain unavailable, falling back to rule-based:', aiErr);
     }
 
     // ── 2. Fall back to rule-based suggestions ──────────────────────────
@@ -88,31 +88,32 @@ const TaskSuggestions = ({ isDetecting }) => {
 
   // ── Source badge ──────────────────────────────────────────────────────
   const sourceBadge = () => {
-    if (source === 'gemini')
-      return (
-        <span style={{
-          fontSize: '0.75rem', background: '#6366f1', color: '#fff',
-          borderRadius: '12px', padding: '2px 10px', marginLeft: '10px'
-        }}>
-         Gemini AI
-        </span>
-      );
-    if (source === 'gemini-fallback')
-      return (
-        <span style={{
-          fontSize: '0.75rem', background: '#d97706', color: '#fff',
-          borderRadius: '12px', padding: '2px 10px', marginLeft: '10px'
-        }}>
-          ⚡ AI Offline Fallback
-        </span>
-      );
+
     if (source === 'rules')
       return (
         <span style={{
           fontSize: '0.75rem', background: '#10b981', color: '#fff',
           borderRadius: '12px', padding: '2px 10px', marginLeft: '10px'
         }}>
-          📋 Smart Suggestions
+          Rule-Based Suggestions
+        </span>
+      );
+    if (source === 'ai')
+      return (
+        <span style={{
+          fontSize: '0.75rem', background: '#6366f1', color: '#fff',
+          borderRadius: '12px', padding: '2px 10px', marginLeft: '10px'
+        }}>
+          AI Model Chain
+        </span>
+      );
+    if (source === 'ai-fallback')
+      return (
+        <span style={{
+          fontSize: '0.75rem', background: '#d97706', color: '#fff',
+          borderRadius: '12px', padding: '2px 10px', marginLeft: '10px'
+        }}>
+          AI Fallback
         </span>
       );
     return null;
@@ -134,9 +135,9 @@ const TaskSuggestions = ({ isDetecting }) => {
         {error && <p style={{ color: '#f56565' }}>{error}</p>}
         {loading && <p>Loading suggestions...</p>}
 
-        {/* Gemini AI / Offline-fallback — formatted text */}
-        {!loading && (source === 'gemini' || source === 'gemini-fallback') && adviceText && (
-          <div className="gemini-advice">
+        {/* AI model chain / fallback — formatted text */}
+        {!loading && (source === 'ai' || source === 'ai-fallback') && adviceText && (
+          <div className="ai-advice">
             {adviceText.split('\n').filter(l => l.trim()).map((line, idx) => (
               <p key={idx} style={{ margin: '4px 0' }}>
                 {renderLine(line, idx)}

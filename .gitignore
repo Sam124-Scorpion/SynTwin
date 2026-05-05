@@ -39,6 +39,11 @@ recording_*.avi
 .kaggle/
 kaggle.json
 
+# Environment variables (secrets)
+.env
+.env.local
+.env.*.local
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -60,3 +65,6 @@ saved_model/
 tmp/
 temp/
 *.tmp
+
+.env
+.env.local

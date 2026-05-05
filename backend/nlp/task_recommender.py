@@ -258,54 +258,6 @@ class TaskRecommender:
             "sentiment_trend": "Positive" if avg_sentiment > 0.3 else "Negative" if avg_sentiment < -0.3 else "Neutral",
             "productive_hours": self._estimate_productive_time(emotions, postures)
         }
-    
-    def _category_to_priority(self, category: str, state: dict) -> str:
-        """Convert ML category to priority level."""
-        high_priority = ["take_break", "mental_health", "posture_fix"]
-        medium_priority = ["focus_work", "wind_down"]
-        
-        if category in high_priority:
-            return "high"
-        elif category in medium_priority:
-            return "medium"
-        else:
-            return "low"
-    
-    def _generate_smart_context(self, state: dict, category: str, patterns: dict) -> str:
-        """Generate intelligent context message using ML insights."""
-        context_parts = []
-        
-        # Category-based context
-        category_contexts = {
-            "take_break": "You need a break to recharge",
-            "focus_work": "You're in great shape for focused work",
-            "mental_health": "Your emotional wellbeing needs attention",
-            "posture_fix": "Your posture needs adjustment",
-            "challenging_task": "You have high energy for difficult tasks",
-            "wind_down": "Time to wind down and prepare for rest"
-        }
-        
-        if category in category_contexts:
-            context_parts.append(category_contexts[category])
-        
-        # Add pattern-based insights
-        if patterns and patterns.get('patterns_found'):
-            current_hour = datetime.now().hour
-            peak_hours = patterns.get('peak_productivity_hours', [])
-            
-            if current_hour in peak_hours:
-                context_parts.append("you're in your peak productivity zone")
-            elif peak_hours and current_hour < min(peak_hours):
-                context_parts.append(f"your peak time is usually around {min(peak_hours)}:00")
-        
-        # Add state-based context
-        if state.get('needs_break'):
-            context_parts.append("break recommended")
-        
-        if not context_parts:
-            return f"Based on ML analysis (category: {category}), here are personalized suggestions."
-        
-        return f"🤖 AI Analysis: {', '.join(context_parts)}."
 
     def _estimate_productive_time(self, emotions, postures):
         """
@@ -321,35 +273,4 @@ class TaskRecommender:
         productive_minutes = (productive_count * 2) / 60
         
         return round(productive_minutes, 1)
-
-
-# Convenience function
-def get_suggestions(minutes=10):
-    """Quick access to get task suggestions."""
-    recommender = TaskRecommender()
-    return recommender.get_task_suggestions(minutes)
-
-
-if __name__ == "__main__":
-    recommender = TaskRecommender()
-    
-    print("SynTwin Task Recommender\n" + "="*60)
-    
-    state = recommender.analyze_current_state(minutes=30)
-    print("\nCurrent State:")
-    for key, value in state.items():
-        print(f"  {key}: {value}")
-    
-    result = recommender.get_task_suggestions(minutes=30)
-    print(f"\nPriority: {result['priority'].upper()}")
-    print(f"Context: {result['recommendation_context']}\n")
-    for i, suggestion in enumerate(result['suggestions'], 1):
-        print(f"  {i}. {suggestion}")
-    
-    daily = recommender.get_daily_summary(hours=24)
-    print("\nDaily Summary:")
-    for key, value in daily.items():
-        print(f"  {key}: {value}")
-        print(f"    Confidence: {sentiment['confidence']:.2f}")
-        print(f"    Method: {sentiment['method']}")
 
